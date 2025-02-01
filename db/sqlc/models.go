@@ -11,17 +11,30 @@ import (
 
 type Account struct {
 	Id           uuid.UUID          `json:"Id"`
-	UserName     pgtype.Text        `json:"UserName"`
 	FirstName    pgtype.Text        `json:"FirstName"`
 	LastName     pgtype.Text        `json:"LastName"`
+	UserName     string             `json:"UserName"`
 	Email        pgtype.Text        `json:"Email"`
 	PasswordHash pgtype.Text        `json:"PasswordHash"`
-	DateOfBirth  pgtype.Date        `json:"DateOfBirth"`
+	DateOfBirth  pgtype.Text        `json:"DateOfBirth"`
 	RoleId       uuid.UUID          `json:"RoleId"`
 	CreatedAt    pgtype.Timestamptz `json:"CreatedAt"`
 	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy    pgtype.Text        `json:"CreatedBy"`
 	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
+}
+
+type BlockBruteForce struct {
+	Id         uuid.UUID          `json:"Id"`
+	Email      string             `json:"Email"`
+	Count      pgtype.Int4        `json:"Count"`
+	Status     string             `json:"Status"`
+	LockedTime pgtype.Timestamptz `json:"LockedTime"`
+	UnLockTime pgtype.Timestamptz `json:"UnLockTime"`
+	CreatedAt  pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt  pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy  pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy  pgtype.Text        `json:"UpdatedBy"`
 }
 
 type BudgetPlan struct {
@@ -62,6 +75,25 @@ type Goal struct {
 	UpdatedAt     pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy     pgtype.Text        `json:"CreatedBy"`
 	UpdatedBy     pgtype.Text        `json:"UpdatedBy"`
+}
+
+type LKPlanWiseSession struct {
+	Id             uuid.UUID          `json:"Id"`
+	AccountId      pgtype.UUID        `json:"AccountId"`
+	LoginAt        pgtype.Timestamptz `json:"LoginAt"`
+	Platform       pgtype.Text        `json:"Platform"`
+	Os             pgtype.Text        `json:"Os"`
+	Browser        pgtype.Text        `json:"Browser"`
+	LoginIp        string             `json:"LoginIp"`
+	IssuedTime     pgtype.Timestamptz `json:"IssuedTime"`
+	ExpirationTime pgtype.Timestamptz `json:"ExpirationTime"`
+	SessionStatus  string             `json:"SessionStatus"`
+	Token          pgtype.Text        `json:"Token"`
+	RefreshTokenAt pgtype.Timestamptz `json:"RefreshTokenAt"`
+	CreatedAt      pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt      pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy      pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy      pgtype.Text        `json:"UpdatedBy"`
 }
 
 type Role struct {

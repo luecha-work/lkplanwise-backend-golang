@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ import (
 
 func newAccountResponse(account db.Account) models.AccountResponse {
 	return models.AccountResponse{
-		UserName:  account.UserName.String,
+		UserName:  account.UserName,
 		FullName:  account.FirstName.String + " " + account.LastName.String,
 		Email:     account.Email.String,
 		CreatedAt: account.CreatedAt.Time,
@@ -22,8 +23,7 @@ func newAccountResponse(account db.Account) models.AccountResponse {
 }
 
 // Define a method on the server.Server type using pointer receiver
-func CreateAccount(store db.Store, ctx *gin.Context) (models.AccountResponse, error) {
-	var req models.CreateAccountRequest
+func CreateAccount(ctx *gin.Context, req models.CreateAccountRequest, store db.Store) (models.AccountResponse, error) {
 
 	// Hash รหัสผ่าน
 	hashPassword, err := utils.HashPassword(req.Password)
@@ -31,12 +31,12 @@ func CreateAccount(store db.Store, ctx *gin.Context) (models.AccountResponse, er
 		return models.AccountResponse{}, err
 	}
 
+	fmt.Println("req.RoleId: ", req.RoleId)
+
 	// สร้าง Account
 	arg := db.CreateAccountParams{
-		UserName: pgtype.Text{
-			String: req.UserName,
-			Valid:  true,
-		},
+		Id:       uuid.New(),
+		UserName: req.UserName,
 		FirstName: pgtype.Text{
 			String: req.FirstName,
 			Valid:  true,
@@ -51,10 +51,10 @@ func CreateAccount(store db.Store, ctx *gin.Context) (models.AccountResponse, er
 		PasswordHash: pgtype.Text{
 			String: hashPassword,
 		},
-		DateOfBirth: pgtype.Date{
-			Time: req.DateOfBirth,
+		DateOfBirth: pgtype.Text{
+			String: req.DateOfBirth,
 		},
-		RoleId: uuid.UUID(req.RoleId),
+		RoleId: uuid.MustParse(req.RoleId),
 		CreatedAt: pgtype.Timestamptz{
 			Time:  time.Now(),
 			Valid: true,

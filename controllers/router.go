@@ -13,8 +13,7 @@ func (server *Server) setupRouter() {
 	router.GET("/hello", func(c *gin.Context) {
 		c.String(200, "hello")
 	})
-	// router.POST("/accounts", server.CreateAccount)
-	// router.POST("/users", server.createUser)
+	router.POST("/register", server.Resister)
 	// router.POST("/users/login", server.loginUser)
 	// router.POST("/token/refresh-token", server.renewAccessToken)
 

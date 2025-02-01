@@ -2,18 +2,16 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type CreateAccountRequest struct {
-	FirstName   string    `json:"first_name" binding:"required,alphanum"`
-	LastName    string    `json:"last_name" binding:"required,alphanum"`
-	UserName    string    `json:"username" binding:"required,alphanum"`
-	Email       string    `json:"email" binding:"required,email"`
-	Password    string    `json:"password" binding:"required"`
-	DateOfBirth time.Time `json:"date_of_birth" binding:"required"`
-	RoleId      uuid.UUID `json:"role_id" binding:"required"`
+	FirstName   string `json:"first_name" binding:"required,alphanum"`
+	LastName    string `json:"last_name" binding:"required,alphanum"`
+	UserName    string `json:"username" binding:"required"`
+	Email       string `json:"email" binding:"required,email"`
+	Password    string `json:"password" binding:"required"`
+	DateOfBirth string `json:"date_of_birth" binding:"required"`
+	RoleId      string `json:"role_id" binding:"required"`
 }
 
 type AccountResponse struct {

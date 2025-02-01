@@ -1,11 +1,11 @@
 CREATE TABLE "Accounts" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "UserName" varchar(100),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "FirstName" varchar(100),
   "LastName" varchar(100),
-  "Email" varchar(255),
+  "UserName" varchar(100) NOT NULL UNIQUE,
+  "Email" varchar(100),
   "PasswordHash" text,
-  "DateOfBirth" date,
+  "DateOfBirth" varchar,
   "RoleId" uuid NOT NULL,
   "CreatedAt" timestamptz,
   "UpdatedAt" timestamptz,
@@ -14,7 +14,7 @@ CREATE TABLE "Accounts" (
 );
 
 CREATE TABLE "Roles" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "RoleCode" varchar(50) UNIQUE NOT NULL,
   "RoleName" varchar(50),
   "CreatedAt" timestamptz,
@@ -24,7 +24,7 @@ CREATE TABLE "Roles" (
 );
 
 CREATE TABLE "Expense" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "Category" varchar(100),
   "Amount" decimal(10,2),
@@ -37,7 +37,7 @@ CREATE TABLE "Expense" (
 );
 
 CREATE TABLE "Goal" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "GoalType" varchar(100),
   "TargetAmount" decimal(10,2),
@@ -51,7 +51,7 @@ CREATE TABLE "Goal" (
 );
 
 CREATE TABLE "TransactionHistory" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "TransactionType" varchar(50),
   "Amount" decimal(10,2),
@@ -63,12 +63,44 @@ CREATE TABLE "TransactionHistory" (
 );
 
 CREATE TABLE "BudgetPlan" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "Month" varchar(20),
   "TotalIncome" decimal(10,2),
   "TotalExpenses" decimal(10,2),
   "SavingsGoal" decimal(10,2),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
+
+CREATE TABLE "LKPlanWiseSession" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid,
+  "LoginAt" timestamptz,
+  "Platform" varchar(100),
+  "Os" varchar(100),
+  "Browser" varchar(100),
+  "LoginIp" varchar(100) NOT NULL,
+  "IssuedTime" timestamptz,
+  "ExpirationTime" timestamptz,
+  "SessionStatus" varchar(1) NOT NULL,
+  "Token" text,
+  "RefreshTokenAt" timestamptz,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
+
+CREATE TABLE "BlockBruteForce" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "Email" varchar(100) NOT NULL,
+  "Count" int,
+  "Status" varchar(1) NOT NULL,
+  "LockedTime" timestamptz,
+  "UnLockTime" timestamptz,
   "CreatedAt" timestamptz,
   "UpdatedAt" timestamptz,
   "CreatedBy" varchar(100),

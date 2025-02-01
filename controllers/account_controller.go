@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,8 +16,10 @@ func (server *Server) CreateAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, constant.ErrorResponse(err))
 		return
 	}
+	fmt.Println("CreateAccount -> req.DateOfBirth: ", req.DateOfBirth)
+	fmt.Println("CreateAccount -> req.RoleId: ", req.RoleId)
 
-	account, err := services.CreateAccount(server.store, ctx)
+	account, err := services.CreateAccount(ctx, req, server.store)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
 		return
