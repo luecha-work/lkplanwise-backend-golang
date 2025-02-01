@@ -4,6 +4,7 @@ go 1.23.5
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/rakyll/statik v0.1.7
 	github.com/spf13/viper v1.19.0
 	golang.org/x/sync v0.10.0
 )
@@ -47,7 +48,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

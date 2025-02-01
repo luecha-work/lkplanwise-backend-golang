@@ -9,6 +9,9 @@ func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	// Register routes
+	router.GET("/hello", func(c *gin.Context) {
+		c.String(200, "hello")
+	})
 	router.POST("/accounts", server.CreateAccount)
 	// router.POST("/users", server.createUser)
 	// router.POST("/users/login", server.loginUser)

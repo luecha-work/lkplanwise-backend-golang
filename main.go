@@ -6,6 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lkplanwise-api/controllers"
+	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/utils"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -31,14 +34,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...)
 	defer stop()
 
-	// connPool, err := pgxpool.New(ctx, config.DBSource)
+	connPool, err := pgxpool.New(ctx, config.DBSource)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
 	// runDBMigration(config.MigrationURL, config.DBSource)
 
-	// store := db.NewStore(connPool)
+	store := db.NewStore(connPool)
 
 	// redisOpt := asynq.RedisClientOpt{
 	// 	Addr: config.RedisAddress,
@@ -48,7 +51,7 @@ func main() {
 
 	waitGroup, ctx := errgroup.WithContext(ctx)
 
-	// runGinServer(config, store)
+	runGinServer(config, store)
 
 	err = waitGroup.Wait()
 	if err != nil {
@@ -70,14 +73,14 @@ func main() {
 // 	log.Info().Msg("db migrated successfully")
 // }
 
-// func runGinServer(config utils.Config, store db.Store) {
-// 	server, err := api.NewServer(config, store)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("cannot create server")
-// 	}
+func runGinServer(config utils.Config, store db.Store) {
+	server, err := controllers.NewServer(config, store)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create server")
+	}
 
-// 	err = server.Start(config.HTTPServerAddress)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("cannot start server")
-// 	}
-// }
+	err = server.Start(config.HTTPServerAddress)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start server")
+	}
+}

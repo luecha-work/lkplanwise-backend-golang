@@ -1,0 +1,82 @@
+Table Accounts {
+  Id uuid [primary key, not null, unique]
+  FirstName varchar(100)
+  LastName varchar(100)
+  Email varchar(255)
+  PasswordHash text
+  DateOfBirth date
+  RoleId uuid [not null]
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+Table Roles {
+  Id uuid [primary key, not null, unique]
+  RoleCode varchar(50) [not null, unique]
+  RoleName varchar(50)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+Table Expense {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  Category varchar(100)
+  Amount decimal(10,2)
+  Date timestamptz
+  Description text
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+Table Goal {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  GoalType varchar(100)
+  TargetAmount decimal(10,2)
+  CurrentAmount decimal(10,2)
+  Deadline timestamptz
+  Progress decimal(5,2)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+Table TransactionHistory {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  TransactionType varchar(50)
+  Amount decimal(10,2)
+  Description text
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+Table BudgetPlan {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null] // กำหนดให้ AccountId ห้าม NULL
+  Month varchar(20)
+  TotalIncome decimal(10,2)
+  TotalExpenses decimal(10,2)
+  SavingsGoal decimal(10,2)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+// Define Foreign Key References
+Ref: Accounts.RoleId > Roles.Id
+Ref: Expense.AccountId > Accounts.Id
+Ref: Goal.AccountId > Accounts.Id
+Ref: TransactionHistory.AccountId > Accounts.Id
+Ref: BudgetPlan.AccountId > Accounts.Id
