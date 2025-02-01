@@ -11,6 +11,16 @@ import (
 	"github.com/lkplanwise-api/utils"
 )
 
+func newAccountResponse(account db.Account) models.AccountResponse {
+	return models.AccountResponse{
+		UserName:  account.UserName.String,
+		FullName:  account.FirstName.String + " " + account.LastName.String,
+		Email:     account.Email.String,
+		CreatedAt: account.CreatedAt.Time,
+		CreatedBy: account.CreatedBy.String,
+	}
+}
+
 // Define a method on the server.Server type using pointer receiver
 func CreateAccount(store db.Store, ctx *gin.Context) (models.AccountResponse, error) {
 	var req models.CreateAccountRequest
@@ -65,13 +75,7 @@ func CreateAccount(store db.Store, ctx *gin.Context) (models.AccountResponse, er
 	}
 
 	// เตรียมข้อมูลที่จะส่งกลับ
-	userResponse := models.AccountResponse{
-		UserName:  account.UserName.String,
-		FullName:  account.FirstName.String + " " + account.LastName.String,
-		Email:     account.Email.String,
-		CreatedAt: account.CreatedAt.Time,
-		CreatedBy: account.CreatedBy.String,
-	}
+	userResponse := newAccountResponse(account)
 
 	return userResponse, nil
 }
