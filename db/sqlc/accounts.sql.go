@@ -7,105 +7,104 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const deleteAccountByID = `-- name: DeleteAccountByID :exec
-DELETE FROM public.accounts
-WHERE id = $1
+const createAccount = `-- name: CreateAccount :one
+INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
-func (q *Queries) DeleteAccountByID(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteAccountByID, id)
+type CreateAccountParams struct {
+	Id           uuid.UUID          `json:"Id"`
+	UserName     pgtype.Text        `json:"UserName"`
+	FirstName    pgtype.Text        `json:"FirstName"`
+	LastName     pgtype.Text        `json:"LastName"`
+	Email        pgtype.Text        `json:"Email"`
+	PasswordHash pgtype.Text        `json:"PasswordHash"`
+	DateOfBirth  pgtype.Date        `json:"DateOfBirth"`
+	RoleId       uuid.UUID          `json:"RoleId"`
+	CreatedAt    pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy    pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
+}
+
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
+	row := q.db.QueryRow(ctx, createAccount,
+		arg.Id,
+		arg.UserName,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.PasswordHash,
+		arg.DateOfBirth,
+		arg.RoleId,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.CreatedBy,
+		arg.UpdatedBy,
+	)
+	var i Account
+	err := row.Scan(
+		&i.Id,
+		&i.UserName,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateOfBirth,
+		&i.RoleId,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const deleteAccount = `-- name: DeleteAccount :exec
+DELETE FROM "Accounts" WHERE "Id" = $1
+`
+
+func (q *Queries) DeleteAccount(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAccount, id)
 	return err
 }
 
-const getAccountByID = `-- name: GetAccountByID :one
-SELECT id, username, firstname, lastname, email, date_of_birth, created_at, created_by, updated_at, updated_by
-FROM public.accounts
-WHERE id = $1
-LIMIT 1
+const getAccountById = `-- name: GetAccountById :one
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts" WHERE "Id" = $1
 `
 
-type GetAccountByIDRow struct {
-	ID          uuid.UUID      `json:"id"`
-	Username    string         `json:"username"`
-	Firstname   sql.NullString `json:"firstname"`
-	Lastname    sql.NullString `json:"lastname"`
-	Email       sql.NullString `json:"email"`
-	DateOfBirth sql.NullTime   `json:"date_of_birth"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
-	CreatedBy   sql.NullString `json:"created_by"`
-	UpdatedAt   sql.NullTime   `json:"updated_at"`
-	UpdatedBy   sql.NullString `json:"updated_by"`
-}
-
-func (q *Queries) GetAccountByID(ctx context.Context, id uuid.UUID) (GetAccountByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getAccountByID, id)
-	var i GetAccountByIDRow
+func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountById, id)
+	var i Account
 	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Firstname,
-		&i.Lastname,
+		&i.Id,
+		&i.UserName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
+		&i.PasswordHash,
 		&i.DateOfBirth,
+		&i.RoleId,
 		&i.CreatedAt,
-		&i.CreatedBy,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 		&i.UpdatedBy,
 	)
 	return i, err
 }
 
-const getAccountByUsername = `-- name: GetAccountByUsername :one
-SELECT id, username, firstname, lastname, email, date_of_birth, created_at, created_by, updated_at, updated_by
-FROM public.accounts
-WHERE username = $1
-LIMIT 1
+const getAllAccounts = `-- name: GetAllAccounts :many
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts"
 `
 
-type GetAccountByUsernameRow struct {
-	ID          uuid.UUID      `json:"id"`
-	Username    string         `json:"username"`
-	Firstname   sql.NullString `json:"firstname"`
-	Lastname    sql.NullString `json:"lastname"`
-	Email       sql.NullString `json:"email"`
-	DateOfBirth sql.NullTime   `json:"date_of_birth"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
-	CreatedBy   sql.NullString `json:"created_by"`
-	UpdatedAt   sql.NullTime   `json:"updated_at"`
-	UpdatedBy   sql.NullString `json:"updated_by"`
-}
-
-func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (GetAccountByUsernameRow, error) {
-	row := q.db.QueryRowContext(ctx, getAccountByUsername, username)
-	var i GetAccountByUsernameRow
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Firstname,
-		&i.Lastname,
-		&i.Email,
-		&i.DateOfBirth,
-		&i.CreatedAt,
-		&i.CreatedBy,
-		&i.UpdatedAt,
-		&i.UpdatedBy,
-	)
-	return i, err
-}
-
-const getAccountsByRole = `-- name: GetAccountsByRole :many
-SELECT a.id, a.username, a.firstname, a.lastname, a.email, a.password_hash, a.date_of_birth, a.created_at, a.created_by, a.updated_at, a.updated_by FROM public.accounts a
-JOIN public.account_roles ar ON a.id = ar.account_id
-WHERE ar.role_id = $1
-`
-
-func (q *Queries) GetAccountsByRole(ctx context.Context, roleID uuid.UUID) ([]Account, error) {
-	rows, err := q.db.QueryContext(ctx, getAccountsByRole, roleID)
+func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
+	rows, err := q.db.Query(ctx, getAllAccounts)
 	if err != nil {
 		return nil, err
 	}
@@ -114,24 +113,22 @@ func (q *Queries) GetAccountsByRole(ctx context.Context, roleID uuid.UUID) ([]Ac
 	for rows.Next() {
 		var i Account
 		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Firstname,
-			&i.Lastname,
+			&i.Id,
+			&i.UserName,
+			&i.FirstName,
+			&i.LastName,
 			&i.Email,
 			&i.PasswordHash,
 			&i.DateOfBirth,
+			&i.RoleId,
 			&i.CreatedAt,
-			&i.CreatedBy,
 			&i.UpdatedAt,
+			&i.CreatedBy,
 			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -139,123 +136,53 @@ func (q *Queries) GetAccountsByRole(ctx context.Context, roleID uuid.UUID) ([]Ac
 	return items, nil
 }
 
-const insertAccount = `-- name: InsertAccount :exec
-INSERT INTO public.accounts (
-  username, firstname, lastname, email, password_hash, date_of_birth, created_at, created_by
-) VALUES (
-  $1, $2, $3, $4, $5, $6, NOW(), $7
-)
-`
-
-type InsertAccountParams struct {
-	Username     string         `json:"username"`
-	Firstname    sql.NullString `json:"firstname"`
-	Lastname     sql.NullString `json:"lastname"`
-	Email        sql.NullString `json:"email"`
-	PasswordHash sql.NullString `json:"password_hash"`
-	DateOfBirth  sql.NullTime   `json:"date_of_birth"`
-	CreatedBy    sql.NullString `json:"created_by"`
-}
-
-func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) error {
-	_, err := q.db.ExecContext(ctx, insertAccount,
-		arg.Username,
-		arg.Firstname,
-		arg.Lastname,
-		arg.Email,
-		arg.PasswordHash,
-		arg.DateOfBirth,
-		arg.CreatedBy,
-	)
-	return err
-}
-
-const listAllAccounts = `-- name: ListAllAccounts :many
-SELECT id, username, firstname, lastname, email, date_of_birth, created_at, created_by, updated_at, updated_by
-FROM public.accounts
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
-`
-
-type ListAllAccountsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-type ListAllAccountsRow struct {
-	ID          uuid.UUID      `json:"id"`
-	Username    string         `json:"username"`
-	Firstname   sql.NullString `json:"firstname"`
-	Lastname    sql.NullString `json:"lastname"`
-	Email       sql.NullString `json:"email"`
-	DateOfBirth sql.NullTime   `json:"date_of_birth"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
-	CreatedBy   sql.NullString `json:"created_by"`
-	UpdatedAt   sql.NullTime   `json:"updated_at"`
-	UpdatedBy   sql.NullString `json:"updated_by"`
-}
-
-func (q *Queries) ListAllAccounts(ctx context.Context, arg ListAllAccountsParams) ([]ListAllAccountsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listAllAccounts, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListAllAccountsRow{}
-	for rows.Next() {
-		var i ListAllAccountsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Firstname,
-			&i.Lastname,
-			&i.Email,
-			&i.DateOfBirth,
-			&i.CreatedAt,
-			&i.CreatedBy,
-			&i.UpdatedAt,
-			&i.UpdatedBy,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const updateAccount = `-- name: UpdateAccount :exec
-UPDATE public.accounts
-SET username = $2, firstname = $3, lastname = $4, email = $5, password_hash = $6, date_of_birth = $7, updated_at = NOW(), updated_by = $8
-WHERE id = $1
+const updateAccount = `-- name: UpdateAccount :one
+UPDATE "Accounts"
+SET "UserName" = $2, "FirstName" = $3, "LastName" = $4, "Email" = $5, "PasswordHash" = $6, "DateOfBirth" = $7, "RoleId" = $8, "UpdatedAt" = $9, "UpdatedBy" = $10
+WHERE "Id" = $1
+RETURNING "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type UpdateAccountParams struct {
-	ID           uuid.UUID      `json:"id"`
-	Username     string         `json:"username"`
-	Firstname    sql.NullString `json:"firstname"`
-	Lastname     sql.NullString `json:"lastname"`
-	Email        sql.NullString `json:"email"`
-	PasswordHash sql.NullString `json:"password_hash"`
-	DateOfBirth  sql.NullTime   `json:"date_of_birth"`
-	UpdatedBy    sql.NullString `json:"updated_by"`
+	Id           uuid.UUID          `json:"Id"`
+	UserName     pgtype.Text        `json:"UserName"`
+	FirstName    pgtype.Text        `json:"FirstName"`
+	LastName     pgtype.Text        `json:"LastName"`
+	Email        pgtype.Text        `json:"Email"`
+	PasswordHash pgtype.Text        `json:"PasswordHash"`
+	DateOfBirth  pgtype.Date        `json:"DateOfBirth"`
+	RoleId       uuid.UUID          `json:"RoleId"`
+	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
+	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
 }
 
-func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
-	_, err := q.db.ExecContext(ctx, updateAccount,
-		arg.ID,
-		arg.Username,
-		arg.Firstname,
-		arg.Lastname,
+func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
+	row := q.db.QueryRow(ctx, updateAccount,
+		arg.Id,
+		arg.UserName,
+		arg.FirstName,
+		arg.LastName,
 		arg.Email,
 		arg.PasswordHash,
 		arg.DateOfBirth,
+		arg.RoleId,
+		arg.UpdatedAt,
 		arg.UpdatedBy,
 	)
-	return err
+	var i Account
+	err := row.Scan(
+		&i.Id,
+		&i.UserName,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateOfBirth,
+		&i.RoleId,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
 }

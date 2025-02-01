@@ -7,103 +7,65 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createRole = `-- name: CreateRole :one
-INSERT INTO public.roles (
-  role_code, role_name, created_at, created_by
-) VALUES (
-  $1, $2, NOW(), $3
-) RETURNING id, role_code, role_name, created_at, created_by, updated_at, updated_by
+INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type CreateRoleParams struct {
-	RoleCode  string         `json:"role_code"`
-	RoleName  sql.NullString `json:"role_name"`
-	CreatedBy sql.NullString `json:"created_by"`
+	Id        uuid.UUID          `json:"Id"`
+	RoleCode  string             `json:"RoleCode"`
+	RoleName  pgtype.Text        `json:"RoleName"`
+	CreatedAt pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error) {
-	row := q.db.QueryRowContext(ctx, createRole, arg.RoleCode, arg.RoleName, arg.CreatedBy)
+	row := q.db.QueryRow(ctx, createRole,
+		arg.Id,
+		arg.RoleCode,
+		arg.RoleName,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.CreatedBy,
+		arg.UpdatedBy,
+	)
 	var i Role
 	err := row.Scan(
-		&i.ID,
+		&i.Id,
 		&i.RoleCode,
 		&i.RoleName,
 		&i.CreatedAt,
-		&i.CreatedBy,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const deleteRole = `-- name: DeleteRole :exec
-DELETE FROM public.roles
-WHERE id = $1
+DELETE FROM "Roles" WHERE "Id" = $1
 `
 
 func (q *Queries) DeleteRole(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteRole, id)
+	_, err := q.db.Exec(ctx, deleteRole, id)
 	return err
 }
 
-const getRole = `-- name: GetRole :one
-SELECT id, role_code, role_name, created_at, created_by, updated_at, updated_by FROM public.roles
-WHERE id = $1 LIMIT 1
+const getAllRoles = `-- name: GetAllRoles :many
+SELECT "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Roles"
 `
 
-func (q *Queries) GetRole(ctx context.Context, id uuid.UUID) (Role, error) {
-	row := q.db.QueryRowContext(ctx, getRole, id)
-	var i Role
-	err := row.Scan(
-		&i.ID,
-		&i.RoleCode,
-		&i.RoleName,
-		&i.CreatedAt,
-		&i.CreatedBy,
-		&i.UpdatedAt,
-		&i.UpdatedBy,
-	)
-	return i, err
-}
-
-const getRoleByCode = `-- name: GetRoleByCode :one
-SELECT id, role_code, role_name, created_at, created_by, updated_at, updated_by FROM public.roles
-WHERE role_code = $1 LIMIT 1
-`
-
-func (q *Queries) GetRoleByCode(ctx context.Context, roleCode string) (Role, error) {
-	row := q.db.QueryRowContext(ctx, getRoleByCode, roleCode)
-	var i Role
-	err := row.Scan(
-		&i.ID,
-		&i.RoleCode,
-		&i.RoleName,
-		&i.CreatedAt,
-		&i.CreatedBy,
-		&i.UpdatedAt,
-		&i.UpdatedBy,
-	)
-	return i, err
-}
-
-const listRoles = `-- name: ListRoles :many
-SELECT id, role_code, role_name, created_at, created_by, updated_at, updated_by FROM public.roles
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
-`
-
-type ListRolesParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) ListRoles(ctx context.Context, arg ListRolesParams) ([]Role, error) {
-	rows, err := q.db.QueryContext(ctx, listRoles, arg.Limit, arg.Offset)
+func (q *Queries) GetAllRoles(ctx context.Context) ([]Role, error) {
+	rows, err := q.db.Query(ctx, getAllRoles)
 	if err != nil {
 		return nil, err
 	}
@@ -112,20 +74,17 @@ func (q *Queries) ListRoles(ctx context.Context, arg ListRolesParams) ([]Role, e
 	for rows.Next() {
 		var i Role
 		if err := rows.Scan(
-			&i.ID,
+			&i.Id,
 			&i.RoleCode,
 			&i.RoleName,
 			&i.CreatedAt,
-			&i.CreatedBy,
 			&i.UpdatedAt,
+			&i.CreatedBy,
 			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -133,35 +92,56 @@ func (q *Queries) ListRoles(ctx context.Context, arg ListRolesParams) ([]Role, e
 	return items, nil
 }
 
+const getRoleById = `-- name: GetRoleById :one
+SELECT "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Roles" WHERE "Id" = $1
+`
+
+func (q *Queries) GetRoleById(ctx context.Context, id uuid.UUID) (Role, error) {
+	row := q.db.QueryRow(ctx, getRoleById, id)
+	var i Role
+	err := row.Scan(
+		&i.Id,
+		&i.RoleCode,
+		&i.RoleName,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const updateRole = `-- name: UpdateRole :one
-UPDATE public.roles
-SET role_code = $2, role_name = $3, updated_at = NOW(), updated_by = $4
-WHERE id = $1
-RETURNING id, role_code, role_name, created_at, created_by, updated_at, updated_by
+UPDATE "Roles"
+SET "RoleCode" = $2, "RoleName" = $3, "UpdatedAt" = $4, "UpdatedBy" = $5
+WHERE "Id" = $1
+RETURNING "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type UpdateRoleParams struct {
-	ID        uuid.UUID      `json:"id"`
-	RoleCode  string         `json:"role_code"`
-	RoleName  sql.NullString `json:"role_name"`
-	UpdatedBy sql.NullString `json:"updated_by"`
+	Id        uuid.UUID          `json:"Id"`
+	RoleCode  string             `json:"RoleCode"`
+	RoleName  pgtype.Text        `json:"RoleName"`
+	UpdatedAt pgtype.Timestamptz `json:"UpdatedAt"`
+	UpdatedBy pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error) {
-	row := q.db.QueryRowContext(ctx, updateRole,
-		arg.ID,
+	row := q.db.QueryRow(ctx, updateRole,
+		arg.Id,
 		arg.RoleCode,
 		arg.RoleName,
+		arg.UpdatedAt,
 		arg.UpdatedBy,
 	)
 	var i Role
 	err := row.Scan(
-		&i.ID,
+		&i.Id,
 		&i.RoleCode,
 		&i.RoleName,
 		&i.CreatedAt,
-		&i.CreatedBy,
 		&i.UpdatedAt,
+		&i.CreatedBy,
 		&i.UpdatedBy,
 	)
 	return i, err

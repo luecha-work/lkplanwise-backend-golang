@@ -11,25 +11,36 @@ import (
 )
 
 type Querier interface {
+	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateBudgetPlan(ctx context.Context, arg CreateBudgetPlanParams) (BudgetPlan, error)
+	CreateExpense(ctx context.Context, arg CreateExpenseParams) (Expense, error)
+	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
-	DeleteAccountByID(ctx context.Context, id uuid.UUID) error
+	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (TransactionHistory, error)
+	DeleteAccount(ctx context.Context, id uuid.UUID) error
+	DeleteBudgetPlan(ctx context.Context, id uuid.UUID) error
+	DeleteExpense(ctx context.Context, id uuid.UUID) error
+	DeleteGoal(ctx context.Context, id uuid.UUID) error
 	DeleteRole(ctx context.Context, id uuid.UUID) error
-	GetAccountByID(ctx context.Context, id uuid.UUID) (GetAccountByIDRow, error)
-	GetAccountByUsername(ctx context.Context, username string) (GetAccountByUsernameRow, error)
-	GetAccountRolesByAccountId(ctx context.Context, accountID uuid.UUID) ([]AccountRole, error)
-	GetAccountRolesByRoleId(ctx context.Context, roleID uuid.UUID) ([]AccountRole, error)
-	GetAccountsByRole(ctx context.Context, roleID uuid.UUID) ([]Account, error)
-	GetAllAccountRoles(ctx context.Context) ([]AccountRole, error)
-	GetRole(ctx context.Context, id uuid.UUID) (Role, error)
-	GetRoleByCode(ctx context.Context, roleCode string) (Role, error)
-	InsertAccount(ctx context.Context, arg InsertAccountParams) error
-	InsertAccountRole(ctx context.Context, arg InsertAccountRoleParams) error
-	ListAllAccounts(ctx context.Context, arg ListAllAccountsParams) ([]ListAllAccountsRow, error)
-	ListRoles(ctx context.Context, arg ListRolesParams) ([]Role, error)
-	RemoveRoleFromAccount(ctx context.Context, arg RemoveRoleFromAccountParams) error
-	UpdateAccount(ctx context.Context, arg UpdateAccountParams) error
-	UpdateAccountsRoles(ctx context.Context, arg UpdateAccountsRolesParams) error
+	DeleteTransaction(ctx context.Context, id uuid.UUID) error
+	GetAccountById(ctx context.Context, id uuid.UUID) (Account, error)
+	GetAllAccounts(ctx context.Context) ([]Account, error)
+	GetAllBudgetPlans(ctx context.Context) ([]BudgetPlan, error)
+	GetAllExpenses(ctx context.Context) ([]Expense, error)
+	GetAllGoals(ctx context.Context) ([]Goal, error)
+	GetAllRoles(ctx context.Context) ([]Role, error)
+	GetAllTransactions(ctx context.Context) ([]TransactionHistory, error)
+	GetBudgetPlanById(ctx context.Context, id uuid.UUID) (BudgetPlan, error)
+	GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error)
+	GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error)
+	GetRoleById(ctx context.Context, id uuid.UUID) (Role, error)
+	GetTransactionById(ctx context.Context, id uuid.UUID) (TransactionHistory, error)
+	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
+	UpdateBudgetPlan(ctx context.Context, arg UpdateBudgetPlanParams) (BudgetPlan, error)
+	UpdateExpense(ctx context.Context, arg UpdateExpenseParams) (Expense, error)
+	UpdateGoal(ctx context.Context, arg UpdateGoalParams) (Goal, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
+	UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (TransactionHistory, error)
 }
 
 var _ Querier = (*Queries)(nil)

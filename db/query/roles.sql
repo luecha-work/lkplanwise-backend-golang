@@ -1,29 +1,19 @@
+-- name: GetAllRoles :many
+SELECT * FROM "Roles";
+
+-- name: GetRoleById :one
+SELECT * FROM "Roles" WHERE "Id" = $1;
+
 -- name: CreateRole :one
-INSERT INTO public.roles (
-  role_code, role_name, created_at, created_by
-) VALUES (
-  $1, $2, NOW(), $3
-) RETURNING *;
-
--- name: GetRole :one
-SELECT * FROM public.roles
-WHERE id = $1 LIMIT 1;
-
--- name: GetRoleByCode :one
-SELECT * FROM public.roles
-WHERE role_code = $1 LIMIT 1;
-
--- name: ListRoles :many
-SELECT * FROM public.roles
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2;
+INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING *;
 
 -- name: UpdateRole :one
-UPDATE public.roles
-SET role_code = $2, role_name = $3, updated_at = NOW(), updated_by = $4
-WHERE id = $1
+UPDATE "Roles"
+SET "RoleCode" = $2, "RoleName" = $3, "UpdatedAt" = $4, "UpdatedBy" = $5
+WHERE "Id" = $1
 RETURNING *;
 
 -- name: DeleteRole :exec
-DELETE FROM public.roles
-WHERE id = $1;
+DELETE FROM "Roles" WHERE "Id" = $1;

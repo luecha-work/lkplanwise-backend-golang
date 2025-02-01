@@ -5,40 +5,83 @@
 package db
 
 import (
-	"database/sql"
-
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Account struct {
-	ID           uuid.UUID      `json:"id"`
-	Username     string         `json:"username"`
-	Firstname    sql.NullString `json:"firstname"`
-	Lastname     sql.NullString `json:"lastname"`
-	Email        sql.NullString `json:"email"`
-	PasswordHash sql.NullString `json:"password_hash"`
-	DateOfBirth  sql.NullTime   `json:"date_of_birth"`
-	CreatedAt    sql.NullTime   `json:"created_at"`
-	CreatedBy    sql.NullString `json:"created_by"`
-	UpdatedAt    sql.NullTime   `json:"updated_at"`
-	UpdatedBy    sql.NullString `json:"updated_by"`
+	Id           uuid.UUID          `json:"Id"`
+	UserName     pgtype.Text        `json:"UserName"`
+	FirstName    pgtype.Text        `json:"FirstName"`
+	LastName     pgtype.Text        `json:"LastName"`
+	Email        pgtype.Text        `json:"Email"`
+	PasswordHash pgtype.Text        `json:"PasswordHash"`
+	DateOfBirth  pgtype.Date        `json:"DateOfBirth"`
+	RoleId       uuid.UUID          `json:"RoleId"`
+	CreatedAt    pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy    pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
 }
 
-type AccountRole struct {
-	AccountID uuid.UUID      `json:"account_id"`
-	RoleID    uuid.UUID      `json:"role_id"`
-	CreatedAt sql.NullTime   `json:"created_at"`
-	UpdatedAt sql.NullTime   `json:"updated_at"`
-	CreatedBy sql.NullString `json:"created_by"`
-	UpdatedBy sql.NullString `json:"updated_by"`
+type BudgetPlan struct {
+	Id            uuid.UUID          `json:"Id"`
+	AccountId     uuid.UUID          `json:"AccountId"`
+	Month         pgtype.Text        `json:"Month"`
+	TotalIncome   pgtype.Numeric     `json:"TotalIncome"`
+	TotalExpenses pgtype.Numeric     `json:"TotalExpenses"`
+	SavingsGoal   pgtype.Numeric     `json:"SavingsGoal"`
+	CreatedAt     pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt     pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy     pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy     pgtype.Text        `json:"UpdatedBy"`
+}
+
+type Expense struct {
+	Id          uuid.UUID          `json:"Id"`
+	AccountId   uuid.UUID          `json:"AccountId"`
+	Category    pgtype.Text        `json:"Category"`
+	Amount      pgtype.Numeric     `json:"Amount"`
+	Date        pgtype.Timestamptz `json:"Date"`
+	Description pgtype.Text        `json:"Description"`
+	CreatedAt   pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt   pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy   pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy   pgtype.Text        `json:"UpdatedBy"`
+}
+
+type Goal struct {
+	Id            uuid.UUID          `json:"Id"`
+	AccountId     uuid.UUID          `json:"AccountId"`
+	GoalType      pgtype.Text        `json:"GoalType"`
+	TargetAmount  pgtype.Numeric     `json:"TargetAmount"`
+	CurrentAmount pgtype.Numeric     `json:"CurrentAmount"`
+	Deadline      pgtype.Timestamptz `json:"Deadline"`
+	Progress      pgtype.Numeric     `json:"Progress"`
+	CreatedAt     pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt     pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy     pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy     pgtype.Text        `json:"UpdatedBy"`
 }
 
 type Role struct {
-	ID        uuid.UUID      `json:"id"`
-	RoleCode  string         `json:"role_code"`
-	RoleName  sql.NullString `json:"role_name"`
-	CreatedAt sql.NullTime   `json:"created_at"`
-	CreatedBy sql.NullString `json:"created_by"`
-	UpdatedAt sql.NullTime   `json:"updated_at"`
-	UpdatedBy sql.NullString `json:"updated_by"`
+	Id        uuid.UUID          `json:"Id"`
+	RoleCode  string             `json:"RoleCode"`
+	RoleName  pgtype.Text        `json:"RoleName"`
+	CreatedAt pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy pgtype.Text        `json:"UpdatedBy"`
+}
+
+type TransactionHistory struct {
+	Id              uuid.UUID          `json:"Id"`
+	AccountId       uuid.UUID          `json:"AccountId"`
+	TransactionType pgtype.Text        `json:"TransactionType"`
+	Amount          pgtype.Numeric     `json:"Amount"`
+	Description     pgtype.Text        `json:"Description"`
+	CreatedAt       pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt       pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy       pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy       pgtype.Text        `json:"UpdatedBy"`
 }

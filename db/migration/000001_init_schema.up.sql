@@ -1,5 +1,6 @@
 CREATE TABLE "Accounts" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "UserName" varchar(100),
   "FirstName" varchar(100),
   "LastName" varchar(100),
   "Email" varchar(255),
@@ -13,7 +14,7 @@ CREATE TABLE "Accounts" (
 );
 
 CREATE TABLE "Roles" (
-  "Id" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "RoleCode" varchar(50) UNIQUE NOT NULL,
   "RoleName" varchar(50),
   "CreatedAt" timestamptz,
@@ -23,7 +24,7 @@ CREATE TABLE "Roles" (
 );
 
 CREATE TABLE "Expense" (
-  "ExpenseId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "Category" varchar(100),
   "Amount" decimal(10,2),
@@ -36,7 +37,7 @@ CREATE TABLE "Expense" (
 );
 
 CREATE TABLE "Goal" (
-  "GoalId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "GoalType" varchar(100),
   "TargetAmount" decimal(10,2),
@@ -50,7 +51,7 @@ CREATE TABLE "Goal" (
 );
 
 CREATE TABLE "TransactionHistory" (
-  "TransactionId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "TransactionType" varchar(50),
   "Amount" decimal(10,2),
@@ -62,7 +63,7 @@ CREATE TABLE "TransactionHistory" (
 );
 
 CREATE TABLE "BudgetPlan" (
-  "BudgetId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "AccountId" uuid NOT NULL,
   "Month" varchar(20),
   "TotalIncome" decimal(10,2),
