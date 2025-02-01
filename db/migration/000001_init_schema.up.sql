@@ -1,41 +1,85 @@
-CREATE TABLE public.accounts (
-	id uuid NOT NULL DEFAULT uuid_generate_v4(),
-	username varchar NOT NULL,
-	firstname varchar NULL,
-	lastname varchar NULL,
-	email varchar NULL,
-	password_hash varchar NULL,
-	date_of_birth date NULL,
-	created_at timestamptz NULL,
-	created_by varchar NULL,
-	updated_at timestamptz NULL,
-	updated_by varchar NULL,
-	CONSTRAINT users_pk PRIMARY KEY (id),
-	CONSTRAINT users_un UNIQUE (username)
+CREATE TABLE "Accounts" (
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "FirstName" varchar(100),
+  "LastName" varchar(100),
+  "Email" varchar(255),
+  "PasswordHash" text,
+  "DateOfBirth" date,
+  "RoleId" uuid NOT NULL,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE public.roles (
-	id uuid NOT NULL DEFAULT uuid_generate_v4(),
-	role_code varchar NOT NULL,
-	role_name varchar NULL,
-	created_at timestamptz NULL,
-	created_by varchar NULL,
-	updated_at timestamptz NULL,
-	updated_by varchar NULL,
-	CONSTRAINT roles_pk PRIMARY KEY (id)
+CREATE TABLE "Roles" (
+  "Id" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "RoleCode" varchar(50) UNIQUE NOT NULL,
+  "RoleName" varchar(50),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE public.account_roles (
-	account_id uuid NOT NULL,
-	role_id uuid NOT NULL,
-	created_at timestamptz NULL,
-	updated_at timestamptz NULL,
-	created_by varchar NULL,
-	updated_by varchar NULL
+CREATE TABLE "Expense" (
+  "ExpenseId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "AccountId" uuid NOT NULL,
+  "Category" varchar(100),
+  "Amount" decimal(10,2),
+  "Date" timestamptz,
+  "Description" text,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
+CREATE TABLE "Goal" (
+  "GoalId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "AccountId" uuid NOT NULL,
+  "GoalType" varchar(100),
+  "TargetAmount" decimal(10,2),
+  "CurrentAmount" decimal(10,2),
+  "Deadline" timestamptz,
+  "Progress" decimal(5,2),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
 
--- public.account_roles foreign keys
+CREATE TABLE "TransactionHistory" (
+  "TransactionId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "AccountId" uuid NOT NULL,
+  "TransactionType" varchar(50),
+  "Amount" decimal(10,2),
+  "Description" text,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
 
-ALTER TABLE public.account_roles ADD CONSTRAINT account_roles_fk FOREIGN KEY (account_id) REFERENCES public.accounts(id);
-ALTER TABLE public.account_roles ADD CONSTRAINT account_roles_fk_1 FOREIGN KEY (role_id) REFERENCES public.roles(id);
+CREATE TABLE "BudgetPlan" (
+  "BudgetId" uuid UNIQUE PRIMARY KEY NOT NULL,
+  "AccountId" uuid NOT NULL,
+  "Month" varchar(20),
+  "TotalIncome" decimal(10,2),
+  "TotalExpenses" decimal(10,2),
+  "SavingsGoal" decimal(10,2),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
+
+ALTER TABLE "Accounts" ADD FOREIGN KEY ("RoleId") REFERENCES "Roles" ("Id");
+
+ALTER TABLE "Expense" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
+
+ALTER TABLE "Goal" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
+
+ALTER TABLE "TransactionHistory" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
+
+ALTER TABLE "BudgetPlan" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
