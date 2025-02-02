@@ -140,6 +140,41 @@ func (q *Queries) GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (L
 	return i, err
 }
 
+const getLKPlanWiseSessionForLogin = `-- name: GetLKPlanWiseSessionForLogin :one
+SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
+FROM "LKPlanWiseSession" 
+WHERE "AccountId" = $1 AND "LoginIp" = $2
+`
+
+type GetLKPlanWiseSessionForLoginParams struct {
+	AccountId pgtype.UUID `json:"AccountId"`
+	LoginIp   string      `json:"LoginIp"`
+}
+
+func (q *Queries) GetLKPlanWiseSessionForLogin(ctx context.Context, arg GetLKPlanWiseSessionForLoginParams) (LKPlanWiseSession, error) {
+	row := q.db.QueryRow(ctx, getLKPlanWiseSessionForLogin, arg.AccountId, arg.LoginIp)
+	var i LKPlanWiseSession
+	err := row.Scan(
+		&i.Id,
+		&i.AccountId,
+		&i.LoginAt,
+		&i.Platform,
+		&i.Os,
+		&i.Browser,
+		&i.LoginIp,
+		&i.IssuedTime,
+		&i.ExpirationTime,
+		&i.SessionStatus,
+		&i.Token,
+		&i.RefreshTokenAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const updateLKPlanWiseSession = `-- name: UpdateLKPlanWiseSession :one
 UPDATE "LKPlanWiseSession"
 SET 

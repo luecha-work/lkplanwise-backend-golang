@@ -16,6 +16,11 @@ SELECT *
 FROM "LKPlanWiseSession" 
 WHERE "Id" = $1;
 
+-- name: GetLKPlanWiseSessionForLogin :one
+SELECT * 
+FROM "LKPlanWiseSession" 
+WHERE "AccountId" = $1 AND "LoginIp" = $2;
+
 -- name: UpdateLKPlanWiseSession :one
 UPDATE "LKPlanWiseSession"
 SET 

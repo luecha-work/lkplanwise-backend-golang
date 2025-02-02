@@ -2,10 +2,9 @@ package services
 
 import (
 	"errors"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/models"
 	"github.com/lkplanwise-api/token"
@@ -13,7 +12,6 @@ import (
 )
 
 func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker token.Maker, config utils.Config) (models.LoginResponse, error) {
-
 	account, err := store.GetAccountByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
@@ -46,34 +44,39 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		utils.DepositorRole,
 		config.RefreshTokenDuration,
 	)
-
 	if err != nil {
 		// ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return models.LoginResponse{}, err
 	}
 
-	session, err := store.CreateLKPlanWiseSession(ctx, db.CreateLKPlanWiseSessionParams{
-		AccountId:      pgtype.UUID{Bytes: account.Id, Valid: true},
-		LoginAt:        pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},
-		Platform:       pgtype.Text{String: "web", Valid: true},
-		Os:             pgtype.Text{String: "windows", Valid: true},
-		Browser:        pgtype.Text{String: "chrome", Valid: true},
-		LoginIp:        ctx.ClientIP(),
-		IssuedTime:     pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},
-		ExpirationTime: pgtype.Timestamptz{Time: accessPayload.ExpiredAt, Valid: true},
-		SessionStatus:  "A",
-		Token:          pgtype.Text{String: accessToken, Valid: true},
-		RefreshTokenAt: pgtype.Timestamptz{Time: refreshPayload.IssuedAt, Valid: true},
-		CreatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		CreatedBy:      pgtype.Text{String: "system", Valid: true},
-	})
-	if err != nil {
-		// ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return models.LoginResponse{}, err
+	//TODO: Check session
+	var sessionId uuid.UUID
+
+	if session, err := CheckSession(ctx, store, account); err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, accessPayload, refreshPayload, accessToken)
+
+			if err != nil {
+				return models.LoginResponse{}, err
+			}
+
+			sessionId = newSession.Id
+		}
+	} else {
+
+		DeleteLKPlanWiseSession(ctx, store, session.Id)
+
+		newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, accessPayload, refreshPayload, accessToken)
+
+		if err != nil {
+			return models.LoginResponse{}, err
+		}
+
+		sessionId = newSession.Id
 	}
 
 	rsp := models.LoginResponse{
-		SessionID:    session.Id,
+		SessionID:    sessionId,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
