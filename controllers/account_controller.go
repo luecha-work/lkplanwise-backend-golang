@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lkplanwise-api/constant"
+	db "github.com/lkplanwise-api/db/sqlc"
 	models "github.com/lkplanwise-api/models"
 	"github.com/lkplanwise-api/services"
 )
@@ -16,11 +17,16 @@ func (server *Server) CreateAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := services.CreateAccount(ctx, server.store, req)
+	rsp, err := services.CreateAccount(ctx, server.store, req)
 	if err != nil {
+		if db.ErrorCode(err) == db.UniqueViolation {
+			ctx.JSON(http.StatusForbidden, constant.ErrorResponse(err))
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, account)
+	ctx.JSON(http.StatusOK, rsp)
 }

@@ -96,7 +96,7 @@ CREATE TABLE "LKPlanWiseSession" (
 
 CREATE TABLE "BlockBruteForce" (
   "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "Email" varchar(100) NOT NULL,
+  "UserName" varchar(100) NOT NULL,
   "Count" int,
   "Status" varchar(1) NOT NULL,
   "LockedTime" timestamptz,

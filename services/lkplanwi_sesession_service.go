@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +32,6 @@ func CreateLKPlanWiseSession(
 	accessPayload *token.Payload,
 	refreshPayload *token.Payload,
 	accessToken string) (db.LKPlanWiseSession, error) {
-	fmt.Println("CreateLKPlanWiseSession")
 	newSession, err := store.CreateLKPlanWiseSession(ctx, db.CreateLKPlanWiseSessionParams{
 		AccountId:      pgtype.UUID{Bytes: account.Id, Valid: true},
 		LoginAt:        pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},

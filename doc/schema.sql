@@ -1,86 +1,118 @@
--- SQL dump generated using DBML (dbml.dbdiagram.io)
--- Database: PostgreSQL
--- Generated at: 2024-12-08T06:50:50.254Z
-
-CREATE TABLE "users" (
-  "username" varchar PRIMARY KEY,
-  "role" varchar NOT NULL DEFAULT 'depositor',
-  "hashed_password" varchar NOT NULL,
-  "full_name" varchar NOT NULL,
-  "email" varchar UNIQUE NOT NULL,
-  "is_email_verified" bool NOT NULL DEFAULT false,
-  "password_changed_at" timestamptz NOT NULL DEFAULT '0001-01-01',
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+CREATE TABLE "Accounts" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "FirstName" varchar(100),
+  "LastName" varchar(100),
+  "UserName" varchar(100) NOT NULL UNIQUE,
+  "Email" varchar(100),
+  "PasswordHash" text,
+  "DateOfBirth" varchar,
+  "RoleId" uuid NOT NULL,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE "verify_emails" (
-  "id" bigserial PRIMARY KEY,
-  "username" varchar NOT NULL,
-  "email" varchar NOT NULL,
-  "secret_code" varchar NOT NULL,
-  "is_used" bool NOT NULL DEFAULT false,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "expired_at" timestamptz NOT NULL DEFAULT (now() + interval '15 minutes')
+CREATE TABLE "Roles" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "RoleCode" varchar(50) UNIQUE NOT NULL,
+  "RoleName" varchar(50),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE "accounts" (
-  "id" bigserial PRIMARY KEY,
-  "owner" varchar NOT NULL,
-  "balance" bigint NOT NULL,
-  "currency" varchar NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+CREATE TABLE "Expense" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid NOT NULL,
+  "Category" varchar(100),
+  "Amount" decimal(10,2),
+  "Date" timestamptz,
+  "Description" text,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE "entries" (
-  "id" bigserial PRIMARY KEY,
-  "account_id" bigint NOT NULL,
-  "amount" bigint NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+CREATE TABLE "Goal" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid NOT NULL,
+  "GoalType" varchar(100),
+  "TargetAmount" decimal(10,2),
+  "CurrentAmount" decimal(10,2),
+  "Deadline" timestamptz,
+  "Progress" decimal(5,2),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE "transfers" (
-  "id" bigserial PRIMARY KEY,
-  "from_account_id" bigint NOT NULL,
-  "to_account_id" bigint NOT NULL,
-  "amount" bigint NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+CREATE TABLE "TransactionHistory" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid NOT NULL,
+  "TransactionType" varchar(50),
+  "Amount" decimal(10,2),
+  "Description" text,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE TABLE "sessions" (
-  "id" uuid PRIMARY KEY,
-  "username" varchar NOT NULL,
-  "refresh_token" varchar NOT NULL,
-  "user_agent" varchar NOT NULL,
-  "client_ip" varchar NOT NULL,
-  "is_blocked" boolean NOT NULL DEFAULT false,
-  "expires_at" timestamptz NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+CREATE TABLE "BudgetPlan" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid NOT NULL,
+  "Month" varchar(20),
+  "TotalIncome" decimal(10,2),
+  "TotalExpenses" decimal(10,2),
+  "SavingsGoal" decimal(10,2),
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
 );
 
-CREATE INDEX ON "accounts" ("owner");
+CREATE TABLE "LKPlanWiseSession" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "AccountId" uuid,
+  "LoginAt" timestamptz,
+  "Platform" varchar(100),
+  "Os" varchar(100),
+  "Browser" varchar(100),
+  "LoginIp" varchar(100) NOT NULL,
+  "IssuedTime" timestamptz,
+  "ExpirationTime" timestamptz,
+  "SessionStatus" varchar(1) NOT NULL,
+  "Token" text,
+  "RefreshTokenAt" timestamptz,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
 
-CREATE UNIQUE INDEX ON "accounts" ("owner", "currency");
+CREATE TABLE "BlockBruteForce" (
+  "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "UserName" varchar(100) NOT NULL,
+  "Count" int,
+  "Status" varchar(1) NOT NULL,
+  "LockedTime" timestamptz,
+  "UnLockTime" timestamptz,
+  "CreatedAt" timestamptz,
+  "UpdatedAt" timestamptz,
+  "CreatedBy" varchar(100),
+  "UpdatedBy" varchar(100)
+);
 
-CREATE INDEX ON "entries" ("account_id");
+ALTER TABLE "Accounts" ADD FOREIGN KEY ("RoleId") REFERENCES "Roles" ("Id");
 
-CREATE INDEX ON "transfers" ("from_account_id");
+ALTER TABLE "Expense" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
 
-CREATE INDEX ON "transfers" ("to_account_id");
+ALTER TABLE "Goal" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
 
-CREATE INDEX ON "transfers" ("from_account_id", "to_account_id");
+ALTER TABLE "TransactionHistory" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");
 
-COMMENT ON COLUMN "entries"."amount" IS 'can be negative or positive';
-
-COMMENT ON COLUMN "transfers"."amount" IS 'must be positive';
-
-ALTER TABLE "verify_emails" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
-
-ALTER TABLE "accounts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username");
-
-ALTER TABLE "entries" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("id");
-
-ALTER TABLE "transfers" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("id");
-
-ALTER TABLE "transfers" ADD FOREIGN KEY ("to_account_id") REFERENCES "accounts" ("id");
-
-ALTER TABLE "sessions" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+ALTER TABLE "BudgetPlan" ADD FOREIGN KEY ("AccountId") REFERENCES "Accounts" ("Id");

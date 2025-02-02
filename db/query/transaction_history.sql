@@ -20,5 +20,6 @@ SET
 WHERE "Id" = $1
 RETURNING *;
 
+
 -- name: DeleteTransaction :exec
 DELETE FROM "TransactionHistory" WHERE "Id" = $1;

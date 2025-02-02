@@ -15,17 +15,15 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	account, err := store.GetAccountByUsername(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
-			// ctx.JSON(http.StatusNotFound, constant.ErrorResponse(err))
-			return models.LoginResponse{}, err
+			ManageBlockBruteForce(ctx, store, req.Username)
+			return models.LoginResponse{}, errors.New("username or password is incorrect")
 		}
-		// ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
-		return models.LoginResponse{}, err
 	}
 
 	err = utils.CheckPassword(req.Password, account.PasswordHash.String)
 	if err != nil {
-		// ctx.JSON(http.StatusUnauthorized, constant.ErrorResponse(err))
-		return models.LoginResponse{}, err
+		ManageBlockBruteForce(ctx, store, req.Username)
+		return models.LoginResponse{}, errors.New("username or password is incorrect")
 	}
 
 	accessToken, accessPayload, err := tokenMaker.CreateToken(

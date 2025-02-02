@@ -40,7 +40,6 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 		return models.AccountResponse{}, err
 	}
 
-	// เตรียมข้อมูลที่จะส่งกลับ
 	userResponse := constant.NewAccountResponse(account)
 
 	return userResponse, nil

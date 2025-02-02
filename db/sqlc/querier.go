@@ -36,6 +36,7 @@ type Querier interface {
 	GetAllRoles(ctx context.Context) ([]Role, error)
 	GetAllTransactions(ctx context.Context) ([]TransactionHistory, error)
 	GetBlockBruteForceById(ctx context.Context, id uuid.UUID) (BlockBruteForce, error)
+	GetBlockBruteForceByUsername(ctx context.Context, username string) (BlockBruteForce, error)
 	GetBudgetPlanById(ctx context.Context, id uuid.UUID) (BudgetPlan, error)
 	GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error)
 	GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error)

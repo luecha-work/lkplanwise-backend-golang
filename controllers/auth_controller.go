@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,12 +16,9 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("Login -> req.Username: ", req.Username)
-	fmt.Println("Login -> req.Password: ", req.Password)
-
 	account, err := services.Login(ctx, server.store, req, server.tokenMaker, server.config)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
+		ctx.JSON(http.StatusUnauthorized, constant.ErrorResponse(err))
 		return
 	}
 

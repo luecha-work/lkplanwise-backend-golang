@@ -26,7 +26,7 @@ type Account struct {
 
 type BlockBruteForce struct {
 	Id         uuid.UUID          `json:"Id"`
-	Email      string             `json:"Email"`
+	UserName   string             `json:"UserName"`
 	Count      pgtype.Int4        `json:"Count"`
 	Status     string             `json:"Status"`
 	LockedTime pgtype.Timestamptz `json:"LockedTime"`

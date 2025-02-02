@@ -14,18 +14,18 @@ import (
 
 const createBlockBruteForce = `-- name: CreateBlockBruteForce :one
 INSERT INTO "BlockBruteForce" (
-  "Email", "Count", "Status", 
+  "UserName", "Count", "Status", 
   "LockedTime", "UnLockTime", "CreatedAt", "CreatedBy"
 ) 
 VALUES (
   $1, $2, $3, 
   $4, $5, $6, $7
 )
-RETURNING "Id", "Email", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "UserName", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type CreateBlockBruteForceParams struct {
-	Email      string             `json:"Email"`
+	UserName   string             `json:"UserName"`
 	Count      pgtype.Int4        `json:"Count"`
 	Status     string             `json:"Status"`
 	LockedTime pgtype.Timestamptz `json:"LockedTime"`
@@ -36,7 +36,7 @@ type CreateBlockBruteForceParams struct {
 
 func (q *Queries) CreateBlockBruteForce(ctx context.Context, arg CreateBlockBruteForceParams) (BlockBruteForce, error) {
 	row := q.db.QueryRow(ctx, createBlockBruteForce,
-		arg.Email,
+		arg.UserName,
 		arg.Count,
 		arg.Status,
 		arg.LockedTime,
@@ -47,7 +47,7 @@ func (q *Queries) CreateBlockBruteForce(ctx context.Context, arg CreateBlockBrut
 	var i BlockBruteForce
 	err := row.Scan(
 		&i.Id,
-		&i.Email,
+		&i.UserName,
 		&i.Count,
 		&i.Status,
 		&i.LockedTime,
@@ -63,7 +63,7 @@ func (q *Queries) CreateBlockBruteForce(ctx context.Context, arg CreateBlockBrut
 const deleteBlockBruteForce = `-- name: DeleteBlockBruteForce :one
 DELETE FROM "BlockBruteForce"
 WHERE "Id" = $1
-RETURNING "Id", "Email", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "UserName", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 func (q *Queries) DeleteBlockBruteForce(ctx context.Context, id uuid.UUID) (BlockBruteForce, error) {
@@ -71,7 +71,7 @@ func (q *Queries) DeleteBlockBruteForce(ctx context.Context, id uuid.UUID) (Bloc
 	var i BlockBruteForce
 	err := row.Scan(
 		&i.Id,
-		&i.Email,
+		&i.UserName,
 		&i.Count,
 		&i.Status,
 		&i.LockedTime,
@@ -85,7 +85,7 @@ func (q *Queries) DeleteBlockBruteForce(ctx context.Context, id uuid.UUID) (Bloc
 }
 
 const getBlockBruteForceById = `-- name: GetBlockBruteForceById :one
-SELECT "Id", "Email", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
+SELECT "Id", "UserName", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
 FROM "BlockBruteForce" 
 WHERE "Id" = $1
 `
@@ -95,7 +95,31 @@ func (q *Queries) GetBlockBruteForceById(ctx context.Context, id uuid.UUID) (Blo
 	var i BlockBruteForce
 	err := row.Scan(
 		&i.Id,
-		&i.Email,
+		&i.UserName,
+		&i.Count,
+		&i.Status,
+		&i.LockedTime,
+		&i.UnLockTime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getBlockBruteForceByUsername = `-- name: GetBlockBruteForceByUsername :one
+SELECT "Id", "UserName", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
+FROM "BlockBruteForce" 
+WHERE "UserName" = $1
+`
+
+func (q *Queries) GetBlockBruteForceByUsername(ctx context.Context, username string) (BlockBruteForce, error) {
+	row := q.db.QueryRow(ctx, getBlockBruteForceByUsername, username)
+	var i BlockBruteForce
+	err := row.Scan(
+		&i.Id,
+		&i.UserName,
 		&i.Count,
 		&i.Status,
 		&i.LockedTime,
@@ -111,7 +135,7 @@ func (q *Queries) GetBlockBruteForceById(ctx context.Context, id uuid.UUID) (Blo
 const updateBlockBruteForce = `-- name: UpdateBlockBruteForce :one
 UPDATE "BlockBruteForce"
 SET 
-  "Email" = COALESCE($2, "Email"),
+  "UserName" = COALESCE($2, "UserName"),
   "Count" = COALESCE($3, "Count"),
   "Status" = COALESCE($4, "Status"),
   "LockedTime" = COALESCE($5, "LockedTime"),
@@ -119,12 +143,12 @@ SET
   "UpdatedAt" = COALESCE($7, "UpdatedAt"),
   "UpdatedBy" = COALESCE($8, "UpdatedBy")
 WHERE "Id" = $1
-RETURNING "Id", "Email", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "UserName", "Count", "Status", "LockedTime", "UnLockTime", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type UpdateBlockBruteForceParams struct {
 	Id         uuid.UUID          `json:"Id"`
-	Email      string             `json:"Email"`
+	UserName   string             `json:"UserName"`
 	Count      pgtype.Int4        `json:"Count"`
 	Status     string             `json:"Status"`
 	LockedTime pgtype.Timestamptz `json:"LockedTime"`
@@ -136,7 +160,7 @@ type UpdateBlockBruteForceParams struct {
 func (q *Queries) UpdateBlockBruteForce(ctx context.Context, arg UpdateBlockBruteForceParams) (BlockBruteForce, error) {
 	row := q.db.QueryRow(ctx, updateBlockBruteForce,
 		arg.Id,
-		arg.Email,
+		arg.UserName,
 		arg.Count,
 		arg.Status,
 		arg.LockedTime,
@@ -147,7 +171,7 @@ func (q *Queries) UpdateBlockBruteForce(ctx context.Context, arg UpdateBlockBrut
 	var i BlockBruteForce
 	err := row.Scan(
 		&i.Id,
-		&i.Email,
+		&i.UserName,
 		&i.Count,
 		&i.Status,
 		&i.LockedTime,

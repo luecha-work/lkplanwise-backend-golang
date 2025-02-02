@@ -1,76 +1,118 @@
-Project simple_bank {
-  database_type: 'PostgreSQL'
-  Note: '''
-    # Simple Bank Database
-  '''
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table Accounts {
+  Id uuid [primary key, not null, unique]
+  UserName varchar(100) [not null, unique]
+  FirstName varchar(100)
+  LastName varchar(100)
+  Email varchar(100)
+  PasswordHash text
+  DateOfBirth date
+  RoleId uuid [not null]
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table users as U {
-  username varchar [pk]
-  role varchar [not null, default: 'depositor']
-  hashed_password varchar [not null]
-  full_name varchar [not null]
-  email varchar [unique, not null]
-  is_email_verified bool [not null, default: false]
-  password_changed_at timestamptz [not null, default: '0001-01-01']
-  created_at timestamptz [not null, default: `now()`]
+Table Roles {
+  Id uuid [primary key, not null, unique]
+  RoleCode varchar(50) [not null, unique]
+  RoleName varchar(50)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table verify_emails {
-  id bigserial [pk]
-  username varchar [ref: > U.username, not null]
-  email varchar [not null]
-  secret_code varchar [not null]
-  is_used bool [not null, default: false]
-  created_at timestamptz [not null, default: `now()`]
-  expired_at timestamptz [not null, default: `now() + interval '15 minutes'`]
+Table Expense {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  Category varchar(100)
+  Amount decimal(10,2)
+  Date timestamptz
+  Description text
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table accounts as A {
-  id bigserial [pk]
-  owner varchar [ref: > U.username, not null]
-  balance bigint [not null]
-  currency varchar [not null]
-  created_at timestamptz [not null, default: `now()`]
-  
-  Indexes {
-    owner
-    (owner, currency) [unique]
-  }
+Table Goal {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  GoalType varchar(100)
+  TargetAmount decimal(10,2)
+  CurrentAmount decimal(10,2)
+  Deadline timestamptz
+  Progress decimal(5,2)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table entries {
-  id bigserial [pk]
-  account_id bigint [ref: > A.id, not null]
-  amount bigint [not null, note: 'can be negative or positive']
-  created_at timestamptz [not null, default: `now()`]
-  
-  Indexes {
-    account_id
-  }
+Table TransactionHistory {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null]
+  TransactionType varchar(50)
+  Amount decimal(10,2)
+  Description text
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table transfers {
-  id bigserial [pk]
-  from_account_id bigint [ref: > A.id, not null]
-  to_account_id bigint [ref: > A.id, not null]
-  amount bigint [not null, note: 'must be positive']
-  created_at timestamptz [not null, default: `now()`]
-  
-  Indexes {
-    from_account_id
-    to_account_id
-    (from_account_id, to_account_id)
-  }
+Table BudgetPlan {
+  Id uuid [primary key, not null, unique]
+  AccountId uuid [not null] // กำหนดให้ AccountId ห้าม NULL
+  Month varchar(20)
+  TotalIncome decimal(10,2)
+  TotalExpenses decimal(10,2)
+  SavingsGoal decimal(10,2)
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
 
-Table sessions {
-  id uuid [pk]
-  username varchar [ref: > U.username, not null]
-  refresh_token varchar [not null]
-  user_agent varchar [not null]
-  client_ip varchar [not null]
-  is_blocked boolean [not null, default: false]
-  expires_at timestamptz [not null]
-  created_at timestamptz [not null, default: `now()`]
+Table LKPlanWiseSession {
+  Id uuid [primary key]
+  AccountId uuid
+  LoginAt timestamptz
+  Platform varchar(100)
+  Os varchar(100)
+  Browser varchar(100)
+  LoginIp varchar(100) [not null]
+  IssuedTime timestamptz
+  ExpirationTime timestamptz
+  SessionStatus varchar(1) [not null]  // B (Blocked), A (Active), E (Expired)
+  Token text
+  RefreshTokenAt  timestamptz
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
 }
+
+Table BlockBruteForce {
+  Id uuid [primary key]
+  UserName varchar(100) [not null]
+  Count int
+  Status varchar(1)  [not null]  // L (Locked), U (UnLock)
+  LockedTime timestamptz
+  UnLockTime timestamptz
+  CreatedAt timestamptz
+  UpdatedAt timestamptz
+  CreatedBy varchar(100)
+  UpdatedBy varchar(100)
+}
+
+// Define Foreign Key References
+Ref: Accounts.RoleId > Roles.Id
+Ref: Expense.AccountId > Accounts.Id
+Ref: Goal.AccountId > Accounts.Id
+Ref: TransactionHistory.AccountId > Accounts.Id
+Ref: BudgetPlan.AccountId > Accounts.Id
