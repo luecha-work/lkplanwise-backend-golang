@@ -2,22 +2,21 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/lkplanwise-api/controllers"
+	api "github.com/lkplanwise-api/controllers"
 	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/utils"
-	"github.com/rakyll/statik/fs"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var interruptSignals = []os.Signal{
@@ -48,21 +47,16 @@ func main() {
 
 	store := db.NewStore(connPool)
 
-	// redisOpt := asynq.RedisClientOpt{
-	// 	Addr: config.RedisAddress,
-	// }
-
-	// taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
-
 	waitGroup, ctx := errgroup.WithContext(ctx)
 
-	runGinServer(config, store)
+	runGinServer(ctx, config, store)
 
 	err = waitGroup.Wait()
 	if err != nil {
 		log.Fatal().Err(err).Msg("error from wait group")
 	}
 
+	log.Info().Msg("Server stopped")
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
@@ -78,36 +72,22 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(config utils.Config, store db.Store) {
-	server, err := controllers.NewServer(config, store)
+func runGinServer(ctx context.Context, config utils.Config, store db.Store) {
+	server, err := api.NewServer(config, store)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
-		MarshalOptions: protojson.MarshalOptions{
-			UseProtoNames: true,
-		},
-		UnmarshalOptions: protojson.UnmarshalOptions{
-			DiscardUnknown: true,
-		},
-	})
+	// ใช้ channel เพื่อรับ error จาก server
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- server.Start(config.HTTPServerAddress)
+	}()
 
-	grpcMux := runtime.NewServeMux(jsonOption)
-
-	mux := http.NewServeMux()
-	mux.Handle("/", grpcMux)
-
-	statikFS, err := fs.New()
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create statik fs")
-	}
-
-	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
-	mux.Handle("/swagger/", swaggerHandler)
-
-	err = server.Start(config.HTTPServerAddress)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot start server")
+	select {
+	case <-ctx.Done(): // กรณี Ctrl+C หรือ SIGTERM
+		log.Info().Msg("Shutting down Gin server...")
+	case err := <-errChan: // กรณีเซิร์ฟเวอร์ล่ม
+		log.Fatal().Err(err).Msg("Server crashed unexpectedly")
 	}
 }

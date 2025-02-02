@@ -4,9 +4,9 @@ package worker
 // 	"context"
 
 // 	"github.com/hibiken/asynq"
+// 	db "github.com/lkplanwise-api/db/sqlc"
+// 	"github.com/lkplanwise-api/mail"
 // 	"github.com/rs/zerolog/log"
-// 	db "github.com/techschool/simple_bank/db/sqlc"
-// 	"github.com/techschool/simple_bank/mail"
 // )
 
 // const (

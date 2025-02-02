@@ -21,8 +21,6 @@ func (server *Server) setupRouter() {
 	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker))
 
 	authRoutes.POST("/accounts", server.CreateAccount)
-
-	// authRoutes.POST("/accounts", server.createAccount)
 	// authRoutes.GET("/accounts/:id", server.getAccount)
 	// authRoutes.GET("/accounts", server.listAccounts)
 

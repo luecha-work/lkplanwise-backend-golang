@@ -9,7 +9,7 @@ import (
 	"github.com/lkplanwise-api/utils"
 )
 
-// // Server serves HTTP requests for our banking service.
+// Server serves HTTP requests for our banking service.
 type Server struct {
 	config     utils.Config
 	store      db.Store
@@ -17,7 +17,7 @@ type Server struct {
 	router     *gin.Engine
 }
 
-// NewServer creates a new HTTO server.
+// NewServer creates a new HTTP server.
 func NewServer(config utils.Config, store db.Store) (*Server, error) {
 	//TODO: Select PasetoMaker or JETMaker to generate token
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
@@ -28,11 +28,6 @@ func NewServer(config utils.Config, store db.Store) (*Server, error) {
 
 	server := &Server{config: config, store: store, tokenMaker: tokenMaker}
 
-	//TODO: Add Register Validation name is currency
-	// if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-	// 	v.RegisterValidation("currency", validCurrency)
-	// }
-
 	server.setupRouter()
 
 	return server, nil
@@ -41,9 +36,3 @@ func NewServer(config utils.Config, store db.Store) (*Server, error) {
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
-
-// func errorResponse(err error) gin.H {
-// 	return gin.H{
-// 		"error": err.Error(),
-// 	}
-// }
