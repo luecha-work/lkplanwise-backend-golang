@@ -5,13 +5,19 @@ SELECT * FROM "BudgetPlan";
 SELECT * FROM "BudgetPlan" WHERE "Id" = $1;
 
 -- name: CreateBudgetPlan :one
-INSERT INTO "BudgetPlan" ("Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO "BudgetPlan" ("Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: UpdateBudgetPlan :one
 UPDATE "BudgetPlan"
-SET "Month" = $2, "TotalIncome" = $3, "TotalExpenses" = $4, "SavingsGoal" = $5, "UpdatedAt" = $6, "UpdatedBy" = $7
+SET 
+  "Month" = COALESCE($2, "Month"),
+  "TotalIncome" = COALESCE($3, "TotalIncome"),
+  "TotalExpenses" = COALESCE($4, "TotalExpenses"),
+  "SavingsGoal" = COALESCE($5, "SavingsGoal"),
+  "UpdatedAt" = COALESCE($6, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($7, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING *;
 

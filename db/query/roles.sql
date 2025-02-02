@@ -5,13 +5,17 @@ SELECT * FROM "Roles";
 SELECT * FROM "Roles" WHERE "Id" = $1;
 
 -- name: CreateRole :one
-INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: UpdateRole :one
 UPDATE "Roles"
-SET "RoleCode" = $2, "RoleName" = $3, "UpdatedAt" = $4, "UpdatedBy" = $5
+SET 
+  "RoleCode" = COALESCE($2, "RoleCode"),
+  "RoleName" = COALESCE($3, "RoleName"),
+  "UpdatedAt" = COALESCE($4, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($5, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING *;
 

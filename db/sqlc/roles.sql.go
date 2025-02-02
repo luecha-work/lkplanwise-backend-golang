@@ -13,8 +13,8 @@ import (
 )
 
 const createRole = `-- name: CreateRole :one
-INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5)
 RETURNING "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -23,9 +23,7 @@ type CreateRoleParams struct {
 	RoleCode  string             `json:"RoleCode"`
 	RoleName  pgtype.Text        `json:"RoleName"`
 	CreatedAt pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error) {
@@ -34,9 +32,7 @@ func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, e
 		arg.RoleCode,
 		arg.RoleName,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i Role
 	err := row.Scan(
@@ -113,7 +109,11 @@ func (q *Queries) GetRoleById(ctx context.Context, id uuid.UUID) (Role, error) {
 
 const updateRole = `-- name: UpdateRole :one
 UPDATE "Roles"
-SET "RoleCode" = $2, "RoleName" = $3, "UpdatedAt" = $4, "UpdatedBy" = $5
+SET 
+  "RoleCode" = COALESCE($2, "RoleCode"),
+  "RoleName" = COALESCE($3, "RoleName"),
+  "UpdatedAt" = COALESCE($4, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($5, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

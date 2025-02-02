@@ -13,8 +13,8 @@ import (
 )
 
 const createExpense = `-- name: CreateExpense :one
-INSERT INTO "Expense" ("Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO "Expense" ("Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING "Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -26,9 +26,7 @@ type CreateExpenseParams struct {
 	Date        pgtype.Timestamptz `json:"Date"`
 	Description pgtype.Text        `json:"Description"`
 	CreatedAt   pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt   pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy   pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy   pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (Expense, error) {
@@ -40,9 +38,7 @@ func (q *Queries) CreateExpense(ctx context.Context, arg CreateExpenseParams) (E
 		arg.Date,
 		arg.Description,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i Expense
 	err := row.Scan(
@@ -128,7 +124,13 @@ func (q *Queries) GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, er
 
 const updateExpense = `-- name: UpdateExpense :one
 UPDATE "Expense"
-SET "Category" = $2, "Amount" = $3, "Date" = $4, "Description" = $5, "UpdatedAt" = $6, "UpdatedBy" = $7
+SET 
+  "Category" = COALESCE($2, "Category"),
+  "Amount" = COALESCE($3, "Amount"),
+  "Date" = COALESCE($4, "Date"),
+  "Description" = COALESCE($5, "Description"),
+  "UpdatedAt" = COALESCE($6, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($7, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

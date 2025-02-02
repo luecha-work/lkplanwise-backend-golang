@@ -9,7 +9,7 @@ type CreateAccountRequest struct {
 	LastName    string `json:"last_name" binding:"required,alphanum"`
 	UserName    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
+	Password    string `json:"password" binding:"required,min=8"`
 	DateOfBirth string `json:"date_of_birth" binding:"required"`
 	RoleId      string `json:"role_id" binding:"required"`
 }

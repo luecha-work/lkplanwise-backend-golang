@@ -13,8 +13,8 @@ import (
 )
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -28,9 +28,7 @@ type CreateAccountParams struct {
 	DateOfBirth  pgtype.Text        `json:"DateOfBirth"`
 	RoleId       uuid.UUID          `json:"RoleId"`
 	CreatedAt    pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy    pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
@@ -44,9 +42,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.DateOfBirth,
 		arg.RoleId,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i Account
 	err := row.Scan(
@@ -81,6 +77,31 @@ SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "Date
 
 func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, error) {
 	row := q.db.QueryRow(ctx, getAccountById, id)
+	var i Account
+	err := row.Scan(
+		&i.Id,
+		&i.FirstName,
+		&i.LastName,
+		&i.UserName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateOfBirth,
+		&i.RoleId,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getAccountByUsername = `-- name: GetAccountByUsername :one
+SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts"
+WHERE "UserName" = $1 LIMIT 1
+`
+
+func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByUsername, username)
 	var i Account
 	err := row.Scan(
 		&i.Id,
@@ -138,7 +159,16 @@ func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
 
 const updateAccount = `-- name: UpdateAccount :one
 UPDATE "Accounts"
-SET "UserName" = $2, "FirstName" = $3, "LastName" = $4, "Email" = $5, "PasswordHash" = $6, "DateOfBirth" = $7, "RoleId" = $8, "UpdatedAt" = $9, "UpdatedBy" = $10
+SET 
+  "UserName" = COALESCE($2, "UserName"),
+  "FirstName" = COALESCE($3, "FirstName"),
+  "LastName" = COALESCE($4, "LastName"),
+  "Email" = COALESCE($5, "Email"),
+  "PasswordHash" = COALESCE($6, "PasswordHash"),
+  "DateOfBirth" = COALESCE($7, "DateOfBirth"),
+  "RoleId" = COALESCE($8, "RoleId"),
+  "UpdatedAt" = COALESCE($9, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($10, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

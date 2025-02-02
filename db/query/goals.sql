@@ -5,13 +5,20 @@ SELECT * FROM "Goal";
 SELECT * FROM "Goal" WHERE "Id" = $1;
 
 -- name: CreateGoal :one
-INSERT INTO "Goal" ("Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO "Goal" ("Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: UpdateGoal :one
 UPDATE "Goal"
-SET "GoalType" = $2, "TargetAmount" = $3, "CurrentAmount" = $4, "Deadline" = $5, "Progress" = $6, "UpdatedAt" = $7, "UpdatedBy" = $8
+SET 
+  "GoalType" = COALESCE($2, "GoalType"),
+  "TargetAmount" = COALESCE($3, "TargetAmount"),
+  "CurrentAmount" = COALESCE($4, "CurrentAmount"),
+  "Deadline" = COALESCE($5, "Deadline"),
+  "Progress" = COALESCE($6, "Progress"),
+  "UpdatedAt" = COALESCE($7, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($8, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING *;
 

@@ -13,8 +13,8 @@ import (
 )
 
 const createGoal = `-- name: CreateGoal :one
-INSERT INTO "Goal" ("Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO "Goal" ("Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING "Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -27,9 +27,7 @@ type CreateGoalParams struct {
 	Deadline      pgtype.Timestamptz `json:"Deadline"`
 	Progress      pgtype.Numeric     `json:"Progress"`
 	CreatedAt     pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt     pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy     pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy     pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error) {
@@ -42,9 +40,7 @@ func (q *Queries) CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, e
 		arg.Deadline,
 		arg.Progress,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i Goal
 	err := row.Scan(
@@ -133,7 +129,14 @@ func (q *Queries) GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error) {
 
 const updateGoal = `-- name: UpdateGoal :one
 UPDATE "Goal"
-SET "GoalType" = $2, "TargetAmount" = $3, "CurrentAmount" = $4, "Deadline" = $5, "Progress" = $6, "UpdatedAt" = $7, "UpdatedBy" = $8
+SET 
+  "GoalType" = COALESCE($2, "GoalType"),
+  "TargetAmount" = COALESCE($3, "TargetAmount"),
+  "CurrentAmount" = COALESCE($4, "CurrentAmount"),
+  "Deadline" = COALESCE($5, "Deadline"),
+  "Progress" = COALESCE($6, "Progress"),
+  "UpdatedAt" = COALESCE($7, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($8, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

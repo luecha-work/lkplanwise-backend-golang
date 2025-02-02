@@ -13,8 +13,8 @@ import (
 )
 
 const createBudgetPlan = `-- name: CreateBudgetPlan :one
-INSERT INTO "BudgetPlan" ("Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO "BudgetPlan" ("Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING "Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -26,9 +26,7 @@ type CreateBudgetPlanParams struct {
 	TotalExpenses pgtype.Numeric     `json:"TotalExpenses"`
 	SavingsGoal   pgtype.Numeric     `json:"SavingsGoal"`
 	CreatedAt     pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt     pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy     pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy     pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateBudgetPlan(ctx context.Context, arg CreateBudgetPlanParams) (BudgetPlan, error) {
@@ -40,9 +38,7 @@ func (q *Queries) CreateBudgetPlan(ctx context.Context, arg CreateBudgetPlanPara
 		arg.TotalExpenses,
 		arg.SavingsGoal,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i BudgetPlan
 	err := row.Scan(
@@ -128,7 +124,13 @@ func (q *Queries) GetBudgetPlanById(ctx context.Context, id uuid.UUID) (BudgetPl
 
 const updateBudgetPlan = `-- name: UpdateBudgetPlan :one
 UPDATE "BudgetPlan"
-SET "Month" = $2, "TotalIncome" = $3, "TotalExpenses" = $4, "SavingsGoal" = $5, "UpdatedAt" = $6, "UpdatedBy" = $7
+SET 
+  "Month" = COALESCE($2, "Month"),
+  "TotalIncome" = COALESCE($3, "TotalIncome"),
+  "TotalExpenses" = COALESCE($4, "TotalExpenses"),
+  "SavingsGoal" = COALESCE($5, "SavingsGoal"),
+  "UpdatedAt" = COALESCE($6, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($7, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

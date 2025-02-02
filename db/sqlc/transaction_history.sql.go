@@ -13,8 +13,8 @@ import (
 )
 
 const createTransaction = `-- name: CreateTransaction :one
-INSERT INTO "TransactionHistory" ("Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy")
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO "TransactionHistory" ("Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "CreatedBy")
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING "Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
@@ -25,9 +25,7 @@ type CreateTransactionParams struct {
 	Amount          pgtype.Numeric     `json:"Amount"`
 	Description     pgtype.Text        `json:"Description"`
 	CreatedAt       pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt       pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy       pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy       pgtype.Text        `json:"UpdatedBy"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (TransactionHistory, error) {
@@ -38,9 +36,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.Amount,
 		arg.Description,
 		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.CreatedBy,
-		arg.UpdatedBy,
 	)
 	var i TransactionHistory
 	err := row.Scan(
@@ -123,7 +119,12 @@ func (q *Queries) GetTransactionById(ctx context.Context, id uuid.UUID) (Transac
 
 const updateTransaction = `-- name: UpdateTransaction :one
 UPDATE "TransactionHistory"
-SET "TransactionType" = $2, "Amount" = $3, "Description" = $4, "UpdatedAt" = $5, "UpdatedBy" = $6
+SET 
+  "TransactionType" = COALESCE($2, "TransactionType"),
+  "Amount" = COALESCE($3, "Amount"),
+  "Description" = COALESCE($4, "Description"),
+  "UpdatedAt" = COALESCE($5, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($6, "UpdatedBy")
 WHERE "Id" = $1
 RETURNING "Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `

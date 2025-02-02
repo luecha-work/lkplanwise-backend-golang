@@ -10,17 +10,33 @@ import (
 	"github.com/lkplanwise-api/services"
 )
 
-func (server *Server) Resister(ctx *gin.Context) {
+func (server *Server) login(ctx *gin.Context) {
+	var req models.LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, constant.ErrorResponse(err))
+		return
+	}
+
+	fmt.Println("Login -> req.Username: ", req.Username)
+	fmt.Println("Login -> req.Password: ", req.Password)
+
+	account, err := services.Login(ctx, server.store, req, server.tokenMaker, server.config)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, account)
+}
+
+func (server *Server) resister(ctx *gin.Context) {
 	var req models.CreateAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, constant.ErrorResponse(err))
 		return
 	}
 
-	fmt.Println("CreateAccount -> req.DateOfBirth: ", req.DateOfBirth)
-	fmt.Println("CreateAccount -> req.RoleId: ", req.RoleId)
-
-	account, err := services.CreateAccount(ctx, req, server.store)
+	account, err := services.CreateAccount(ctx, server.store, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
 		return

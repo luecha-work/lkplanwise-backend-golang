@@ -13,7 +13,6 @@ import (
 	api "github.com/lkplanwise-api/controllers"
 	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/utils"
-	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -49,7 +48,7 @@ func main() {
 
 	waitGroup, ctx := errgroup.WithContext(ctx)
 
-	runGinServer(ctx, config, store)
+	runGinServer(config, store)
 
 	err = waitGroup.Wait()
 	if err != nil {
@@ -72,22 +71,14 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(ctx context.Context, config utils.Config, store db.Store) {
+func runGinServer(config utils.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	// ใช้ channel เพื่อรับ error จาก server
-	errChan := make(chan error, 1)
-	go func() {
-		errChan <- server.Start(config.HTTPServerAddress)
-	}()
-
-	select {
-	case <-ctx.Done(): // กรณี Ctrl+C หรือ SIGTERM
-		log.Info().Msg("Shutting down Gin server...")
-	case err := <-errChan: // กรณีเซิร์ฟเวอร์ล่ม
-		log.Fatal().Err(err).Msg("Server crashed unexpectedly")
+	err = server.Start(config.HTTPServerAddress)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start server")
 	}
 }
