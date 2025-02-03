@@ -16,6 +16,12 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
+	isBlocked, err := services.CheckBlockedBruteForce(ctx, server.store, req.Username)
+	if isBlocked {
+		ctx.JSON(http.StatusLocked, constant.ErrorResponse(err))
+		return
+	}
+
 	account, err := services.Login(ctx, server.store, req, server.tokenMaker, server.config)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, constant.ErrorResponse(err))

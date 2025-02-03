@@ -101,7 +101,7 @@ func (q *Queries) GetAllBudgetPlans(ctx context.Context) ([]BudgetPlan, error) {
 }
 
 const getBudgetPlanById = `-- name: GetBudgetPlanById :one
-SELECT "Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "BudgetPlan" WHERE "Id" = $1
+SELECT "Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "BudgetPlan" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetBudgetPlanById(ctx context.Context, id uuid.UUID) (BudgetPlan, error) {

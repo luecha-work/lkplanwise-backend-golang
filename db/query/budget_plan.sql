@@ -2,7 +2,7 @@
 SELECT * FROM "BudgetPlan";
 
 -- name: GetBudgetPlanById :one
-SELECT * FROM "BudgetPlan" WHERE "Id" = $1;
+SELECT * FROM "BudgetPlan" WHERE "Id" = $1 LIMIT 1;
 
 -- name: CreateBudgetPlan :one
 INSERT INTO "BudgetPlan" ("Id", "AccountId", "Month", "TotalIncome", "TotalExpenses", "SavingsGoal", "CreatedAt", "CreatedBy")

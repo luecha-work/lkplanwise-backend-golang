@@ -105,7 +105,7 @@ func (q *Queries) GetAllGoals(ctx context.Context) ([]Goal, error) {
 }
 
 const getGoalById = `-- name: GetGoalById :one
-SELECT "Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Goal" WHERE "Id" = $1
+SELECT "Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Goal" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error) {

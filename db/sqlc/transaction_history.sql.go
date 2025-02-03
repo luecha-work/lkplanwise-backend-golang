@@ -97,7 +97,7 @@ func (q *Queries) GetAllTransactions(ctx context.Context) ([]TransactionHistory,
 }
 
 const getTransactionById = `-- name: GetTransactionById :one
-SELECT "Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "TransactionHistory" WHERE "Id" = $1
+SELECT "Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "TransactionHistory" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetTransactionById(ctx context.Context, id uuid.UUID) (TransactionHistory, error) {

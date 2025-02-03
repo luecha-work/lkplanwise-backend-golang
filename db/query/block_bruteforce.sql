@@ -12,24 +12,24 @@ RETURNING *;
 -- name: GetBlockBruteForceById :one
 SELECT * 
 FROM "BlockBruteForce" 
-WHERE "Id" = $1;
+WHERE "Id" = $1 LIMIT 1;
 
 -- name: GetBlockBruteForceByUsername :one
 SELECT * 
 FROM "BlockBruteForce" 
-WHERE "UserName" = $1;
+WHERE "UserName" = $1 LIMIT 1;
 
 -- name: UpdateBlockBruteForce :one
 UPDATE "BlockBruteForce"
 SET 
-  "UserName" = COALESCE($2, "UserName"),
-  "Count" = COALESCE($3, "Count"),
-  "Status" = COALESCE($4, "Status"),
-  "LockedTime" = COALESCE($5, "LockedTime"),
-  "UnLockTime" = COALESCE($6, "UnLockTime"),
-  "UpdatedAt" = COALESCE($7, "UpdatedAt"),
-  "UpdatedBy" = COALESCE($8, "UpdatedBy")
-WHERE "Id" = $1
+  "UserName" = COALESCE(sqlc.narg(UserName), "UserName"),
+  "Count" = COALESCE(sqlc.narg(Count), "Count"),
+  "Status" = COALESCE(sqlc.narg(Status), "Status"),
+  "LockedTime" = COALESCE(sqlc.narg(LockedTime), "LockedTime"),
+  "UnLockTime" = COALESCE(sqlc.narg(UnLockTime), "UnLockTime"),
+  "UpdatedAt" = COALESCE(sqlc.narg(UpdatedAt), "UpdatedAt"),
+  "UpdatedBy" = COALESCE(sqlc.narg(UpdatedBy), "UpdatedBy")
+WHERE "Id" = sqlc.arg(Id)
 RETURNING *;
 
 -- name: DeleteBlockBruteForce :one

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ import (
 func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker token.Maker, config utils.Config) (models.LoginResponse, error) {
 	account, err := store.GetAccountByUsername(ctx, req.Username)
 	if err != nil {
+		fmt.Printf("get account error: %s\n", err)
 		if errors.Is(err, db.ErrRecordNotFound) {
 			ManageBlockBruteForce(ctx, store, req.Username)
 			return models.LoginResponse{}, errors.New("username or password is incorrect")
@@ -22,6 +24,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 
 	err = utils.CheckPassword(req.Password, account.PasswordHash.String)
 	if err != nil {
+		fmt.Printf("check password error: %s\n", err)
 		ManageBlockBruteForce(ctx, store, req.Username)
 		return models.LoginResponse{}, errors.New("username or password is incorrect")
 	}
@@ -33,7 +36,6 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	)
 
 	if err != nil {
-		// ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return models.LoginResponse{}, err
 	}
 
@@ -43,7 +45,6 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		config.RefreshTokenDuration,
 	)
 	if err != nil {
-		// ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return models.LoginResponse{}, err
 	}
 
@@ -71,6 +72,11 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		}
 
 		sessionId = newSession.Id
+	}
+
+	_, err = checkForUnLockBruteForce(ctx, store, req.Username)
+	if err != nil {
+		return models.LoginResponse{}, err
 	}
 
 	rsp := models.LoginResponse{

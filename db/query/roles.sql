@@ -2,7 +2,7 @@
 SELECT * FROM "Roles";
 
 -- name: GetRoleById :one
-SELECT * FROM "Roles" WHERE "Id" = $1;
+SELECT * FROM "Roles" WHERE "Id" = $1 LIMIT 1;
 
 -- name: CreateRole :one
 INSERT INTO "Roles" ("Id", "RoleCode", "RoleName", "CreatedAt", "CreatedBy")

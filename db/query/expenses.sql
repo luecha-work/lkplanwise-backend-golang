@@ -2,7 +2,7 @@
 SELECT * FROM "Expense";
 
 -- name: GetExpenseById :one
-SELECT * FROM "Expense" WHERE "Id" = $1;
+SELECT * FROM "Expense" WHERE "Id" = $1 LIMIT 1;
 
 -- name: CreateExpense :one
 INSERT INTO "Expense" ("Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "CreatedBy")

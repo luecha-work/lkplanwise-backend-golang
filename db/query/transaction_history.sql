@@ -2,7 +2,7 @@
 SELECT * FROM "TransactionHistory";
 
 -- name: GetTransactionById :one
-SELECT * FROM "TransactionHistory" WHERE "Id" = $1;
+SELECT * FROM "TransactionHistory" WHERE "Id" = $1 LIMIT 1;
 
 -- name: CreateTransaction :one
 INSERT INTO "TransactionHistory" ("Id", "AccountId", "TransactionType", "Amount", "Description", "CreatedAt", "CreatedBy")

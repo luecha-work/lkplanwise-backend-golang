@@ -15,7 +15,7 @@ import (
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "CreatedBy")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
 `
 
 type CreateAccountParams struct {
@@ -58,6 +58,8 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.UpdatedAt,
 		&i.CreatedBy,
 		&i.UpdatedBy,
+		&i.IsMailVerified,
+		&i.IsLocked,
 	)
 	return i, err
 }
@@ -72,7 +74,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAccountById = `-- name: GetAccountById :one
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts" WHERE "Id" = $1
+SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, error) {
@@ -91,12 +93,14 @@ func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, er
 		&i.UpdatedAt,
 		&i.CreatedBy,
 		&i.UpdatedBy,
+		&i.IsMailVerified,
+		&i.IsLocked,
 	)
 	return i, err
 }
 
 const getAccountByUsername = `-- name: GetAccountByUsername :one
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts"
+SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
 WHERE "UserName" = $1 LIMIT 1
 `
 
@@ -116,12 +120,14 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 		&i.UpdatedAt,
 		&i.CreatedBy,
 		&i.UpdatedBy,
+		&i.IsMailVerified,
+		&i.IsLocked,
 	)
 	return i, err
 }
 
 const getAllAccounts = `-- name: GetAllAccounts :many
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts"
+SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
 `
 
 func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
@@ -146,6 +152,8 @@ func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
 			&i.UpdatedAt,
 			&i.CreatedBy,
 			&i.UpdatedBy,
+			&i.IsMailVerified,
+			&i.IsLocked,
 		); err != nil {
 			return nil, err
 		}
@@ -160,44 +168,50 @@ func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
 const updateAccount = `-- name: UpdateAccount :one
 UPDATE "Accounts"
 SET 
-  "UserName" = COALESCE($2, "UserName"),
-  "FirstName" = COALESCE($3, "FirstName"),
-  "LastName" = COALESCE($4, "LastName"),
-  "Email" = COALESCE($5, "Email"),
-  "PasswordHash" = COALESCE($6, "PasswordHash"),
-  "DateOfBirth" = COALESCE($7, "DateOfBirth"),
-  "RoleId" = COALESCE($8, "RoleId"),
-  "UpdatedAt" = COALESCE($9, "UpdatedAt"),
-  "UpdatedBy" = COALESCE($10, "UpdatedBy")
-WHERE "Id" = $1
-RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+  "UserName" = COALESCE($1, "UserName"),
+  "FirstName" = COALESCE($2, "FirstName"),
+  "LastName" = COALESCE($3, "LastName"),
+  "Email" = COALESCE($4, "Email"),
+  "PasswordHash" = COALESCE($5, "PasswordHash"),
+  "DateOfBirth" = COALESCE($6, "DateOfBirth"),
+  "RoleId" = COALESCE($7, "RoleId"),
+  "UpdatedAt" = COALESCE($8, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($9, "UpdatedBy"),
+  "IsMailVerified" = COALESCE($10, "IsMailVerified"),
+  "IsLocked" = COALESCE($11, "IsLocked")
+WHERE "Id" = $12
+RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
 `
 
 type UpdateAccountParams struct {
-	Id           uuid.UUID          `json:"Id"`
-	UserName     string             `json:"UserName"`
-	FirstName    pgtype.Text        `json:"FirstName"`
-	LastName     pgtype.Text        `json:"LastName"`
-	Email        pgtype.Text        `json:"Email"`
-	PasswordHash pgtype.Text        `json:"PasswordHash"`
-	DateOfBirth  pgtype.Text        `json:"DateOfBirth"`
-	RoleId       uuid.UUID          `json:"RoleId"`
-	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
-	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
+	Username       pgtype.Text        `json:"username"`
+	Firstname      pgtype.Text        `json:"firstname"`
+	Lastname       pgtype.Text        `json:"lastname"`
+	Email          pgtype.Text        `json:"email"`
+	Passwordhash   pgtype.Text        `json:"passwordhash"`
+	Dateofbirth    pgtype.Text        `json:"dateofbirth"`
+	Roleid         pgtype.UUID        `json:"roleid"`
+	Updatedat      pgtype.Timestamptz `json:"updatedat"`
+	Updatedby      pgtype.Text        `json:"updatedby"`
+	Ismailverified pgtype.Bool        `json:"ismailverified"`
+	Islocked       pgtype.Bool        `json:"islocked"`
+	ID             uuid.UUID          `json:"id"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
 	row := q.db.QueryRow(ctx, updateAccount,
-		arg.Id,
-		arg.UserName,
-		arg.FirstName,
-		arg.LastName,
+		arg.Username,
+		arg.Firstname,
+		arg.Lastname,
 		arg.Email,
-		arg.PasswordHash,
-		arg.DateOfBirth,
-		arg.RoleId,
-		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.Passwordhash,
+		arg.Dateofbirth,
+		arg.Roleid,
+		arg.Updatedat,
+		arg.Updatedby,
+		arg.Ismailverified,
+		arg.Islocked,
+		arg.ID,
 	)
 	var i Account
 	err := row.Scan(
@@ -213,6 +227,8 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		&i.UpdatedAt,
 		&i.CreatedBy,
 		&i.UpdatedBy,
+		&i.IsMailVerified,
+		&i.IsLocked,
 	)
 	return i, err
 }

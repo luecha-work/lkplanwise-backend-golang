@@ -2,7 +2,7 @@
 SELECT * FROM "Accounts";
 
 -- name: GetAccountById :one
-SELECT * FROM "Accounts" WHERE "Id" = $1;
+SELECT * FROM "Accounts" WHERE "Id" = $1 LIMIT 1;
 
 -- name: GetAccountByUsername :one
 SELECT * FROM "Accounts"
@@ -16,17 +16,20 @@ RETURNING *;
 -- name: UpdateAccount :one
 UPDATE "Accounts"
 SET 
-  "UserName" = COALESCE($2, "UserName"),
-  "FirstName" = COALESCE($3, "FirstName"),
-  "LastName" = COALESCE($4, "LastName"),
-  "Email" = COALESCE($5, "Email"),
-  "PasswordHash" = COALESCE($6, "PasswordHash"),
-  "DateOfBirth" = COALESCE($7, "DateOfBirth"),
-  "RoleId" = COALESCE($8, "RoleId"),
-  "UpdatedAt" = COALESCE($9, "UpdatedAt"),
-  "UpdatedBy" = COALESCE($10, "UpdatedBy")
-WHERE "Id" = $1
+  "UserName" = COALESCE(sqlc.narg(UserName), "UserName"),
+  "FirstName" = COALESCE(sqlc.narg(FirstName), "FirstName"),
+  "LastName" = COALESCE(sqlc.narg(LastName), "LastName"),
+  "Email" = COALESCE(sqlc.narg(Email), "Email"),
+  "PasswordHash" = COALESCE(sqlc.narg(PasswordHash), "PasswordHash"),
+  "DateOfBirth" = COALESCE(sqlc.narg(DateOfBirth), "DateOfBirth"),
+  "RoleId" = COALESCE(sqlc.narg(RoleId), "RoleId"),
+  "UpdatedAt" = COALESCE(sqlc.narg(UpdatedAt), "UpdatedAt"),
+  "UpdatedBy" = COALESCE(sqlc.narg(UpdatedBy), "UpdatedBy"),
+  "IsMailVerified" = COALESCE(sqlc.narg(IsMailVerified), "IsMailVerified"),
+  "IsLocked" = COALESCE(sqlc.narg(IsLocked), "IsLocked")
+WHERE "Id" = sqlc.arg(Id)
 RETURNING *;
+
 
 -- name: DeleteAccount :exec
 DELETE FROM "Accounts" WHERE "Id" = $1;

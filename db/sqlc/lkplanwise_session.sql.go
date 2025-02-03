@@ -113,7 +113,7 @@ func (q *Queries) DeleteLKPlanWiseSession(ctx context.Context, id uuid.UUID) (LK
 const getLKPlanWiseSessionById = `-- name: GetLKPlanWiseSessionById :one
 SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
 FROM "LKPlanWiseSession" 
-WHERE "Id" = $1
+WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (LKPlanWiseSession, error) {
@@ -143,7 +143,7 @@ func (q *Queries) GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (L
 const getLKPlanWiseSessionForLogin = `-- name: GetLKPlanWiseSessionForLogin :one
 SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
 FROM "LKPlanWiseSession" 
-WHERE "AccountId" = $1 AND "LoginIp" = $2
+WHERE "AccountId" = $1 AND "LoginIp" = $2 LIMIT 1
 `
 
 type GetLKPlanWiseSessionForLoginParams struct {
@@ -178,56 +178,56 @@ func (q *Queries) GetLKPlanWiseSessionForLogin(ctx context.Context, arg GetLKPla
 const updateLKPlanWiseSession = `-- name: UpdateLKPlanWiseSession :one
 UPDATE "LKPlanWiseSession"
 SET 
-  "AccountId" = COALESCE($2, "AccountId"),
-  "LoginAt" = COALESCE($3, "LoginAt"),
-  "Platform" = COALESCE($4, "Platform"),
-  "Os" = COALESCE($5, "Os"),
-  "Browser" = COALESCE($6, "Browser"),
-  "LoginIp" = COALESCE($7, "LoginIp"),
-  "IssuedTime" = COALESCE($8, "IssuedTime"),
-  "ExpirationTime" = COALESCE($9, "ExpirationTime"),
-  "SessionStatus" = COALESCE($10, "SessionStatus"),
-  "Token" = COALESCE($11, "Token"),
-  "RefreshTokenAt" = COALESCE($12, "RefreshTokenAt"),
-  "UpdatedAt" = COALESCE($13, "UpdatedAt"),
-  "UpdatedBy" = COALESCE($14, "UpdatedBy")
-WHERE "Id" = $1
+  "AccountId" = COALESCE($1, "AccountId"),
+  "LoginAt" = COALESCE($2, "LoginAt"),
+  "Platform" = COALESCE($3, "Platform"),
+  "Os" = COALESCE($4, "Os"),
+  "Browser" = COALESCE($5, "Browser"),
+  "LoginIp" = COALESCE($6, "LoginIp"),
+  "IssuedTime" = COALESCE($7, "IssuedTime"),
+  "ExpirationTime" = COALESCE($8, "ExpirationTime"),
+  "SessionStatus" = COALESCE($9, "SessionStatus"),
+  "Token" = COALESCE($10, "Token"),
+  "RefreshTokenAt" = COALESCE($11, "RefreshTokenAt"),
+  "UpdatedAt" = COALESCE($12, "UpdatedAt"),
+  "UpdatedBy" = COALESCE($13, "UpdatedBy")
+WHERE "Id" = $14
 RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type UpdateLKPlanWiseSessionParams struct {
-	Id             uuid.UUID          `json:"Id"`
-	AccountId      pgtype.UUID        `json:"AccountId"`
-	LoginAt        pgtype.Timestamptz `json:"LoginAt"`
-	Platform       pgtype.Text        `json:"Platform"`
-	Os             pgtype.Text        `json:"Os"`
-	Browser        pgtype.Text        `json:"Browser"`
-	LoginIp        string             `json:"LoginIp"`
-	IssuedTime     pgtype.Timestamptz `json:"IssuedTime"`
-	ExpirationTime pgtype.Timestamptz `json:"ExpirationTime"`
-	SessionStatus  string             `json:"SessionStatus"`
-	Token          pgtype.Text        `json:"Token"`
-	RefreshTokenAt pgtype.Timestamptz `json:"RefreshTokenAt"`
-	UpdatedAt      pgtype.Timestamptz `json:"UpdatedAt"`
-	UpdatedBy      pgtype.Text        `json:"UpdatedBy"`
+	Accountid      pgtype.UUID        `json:"accountid"`
+	Loginat        pgtype.Timestamptz `json:"loginat"`
+	Platform       pgtype.Text        `json:"platform"`
+	Os             pgtype.Text        `json:"os"`
+	Browser        pgtype.Text        `json:"browser"`
+	Loginip        pgtype.Text        `json:"loginip"`
+	Issuedtime     pgtype.Timestamptz `json:"issuedtime"`
+	Expirationtime pgtype.Timestamptz `json:"expirationtime"`
+	Sessionstatus  pgtype.Text        `json:"sessionstatus"`
+	Token          pgtype.Text        `json:"token"`
+	Refreshtokenat pgtype.Timestamptz `json:"refreshtokenat"`
+	Updatedat      pgtype.Timestamptz `json:"updatedat"`
+	Updatedby      pgtype.Text        `json:"updatedby"`
+	ID             uuid.UUID          `json:"id"`
 }
 
 func (q *Queries) UpdateLKPlanWiseSession(ctx context.Context, arg UpdateLKPlanWiseSessionParams) (LKPlanWiseSession, error) {
 	row := q.db.QueryRow(ctx, updateLKPlanWiseSession,
-		arg.Id,
-		arg.AccountId,
-		arg.LoginAt,
+		arg.Accountid,
+		arg.Loginat,
 		arg.Platform,
 		arg.Os,
 		arg.Browser,
-		arg.LoginIp,
-		arg.IssuedTime,
-		arg.ExpirationTime,
-		arg.SessionStatus,
+		arg.Loginip,
+		arg.Issuedtime,
+		arg.Expirationtime,
+		arg.Sessionstatus,
 		arg.Token,
-		arg.RefreshTokenAt,
-		arg.UpdatedAt,
-		arg.UpdatedBy,
+		arg.Refreshtokenat,
+		arg.Updatedat,
+		arg.Updatedby,
+		arg.ID,
 	)
 	var i LKPlanWiseSession
 	err := row.Scan(

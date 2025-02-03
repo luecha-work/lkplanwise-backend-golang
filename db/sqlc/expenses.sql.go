@@ -101,7 +101,7 @@ func (q *Queries) GetAllExpenses(ctx context.Context) ([]Expense, error) {
 }
 
 const getExpenseById = `-- name: GetExpenseById :one
-SELECT "Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Expense" WHERE "Id" = $1
+SELECT "Id", "AccountId", "Category", "Amount", "Date", "Description", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Expense" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error) {

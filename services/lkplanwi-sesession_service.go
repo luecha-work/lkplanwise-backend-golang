@@ -48,7 +48,6 @@ func CreateLKPlanWiseSession(
 		CreatedBy:      pgtype.Text{String: "system", Valid: true},
 	})
 	if err != nil {
-		// ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return db.LKPlanWiseSession{}, err
 	}
 

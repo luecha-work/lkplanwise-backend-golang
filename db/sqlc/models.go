@@ -10,18 +10,20 @@ import (
 )
 
 type Account struct {
-	Id           uuid.UUID          `json:"Id"`
-	FirstName    pgtype.Text        `json:"FirstName"`
-	LastName     pgtype.Text        `json:"LastName"`
-	UserName     string             `json:"UserName"`
-	Email        pgtype.Text        `json:"Email"`
-	PasswordHash pgtype.Text        `json:"PasswordHash"`
-	DateOfBirth  pgtype.Text        `json:"DateOfBirth"`
-	RoleId       uuid.UUID          `json:"RoleId"`
-	CreatedAt    pgtype.Timestamptz `json:"CreatedAt"`
-	UpdatedAt    pgtype.Timestamptz `json:"UpdatedAt"`
-	CreatedBy    pgtype.Text        `json:"CreatedBy"`
-	UpdatedBy    pgtype.Text        `json:"UpdatedBy"`
+	Id             uuid.UUID          `json:"Id"`
+	FirstName      pgtype.Text        `json:"FirstName"`
+	LastName       pgtype.Text        `json:"LastName"`
+	UserName       string             `json:"UserName"`
+	Email          pgtype.Text        `json:"Email"`
+	PasswordHash   pgtype.Text        `json:"PasswordHash"`
+	DateOfBirth    pgtype.Text        `json:"DateOfBirth"`
+	RoleId         uuid.UUID          `json:"RoleId"`
+	CreatedAt      pgtype.Timestamptz `json:"CreatedAt"`
+	UpdatedAt      pgtype.Timestamptz `json:"UpdatedAt"`
+	CreatedBy      pgtype.Text        `json:"CreatedBy"`
+	UpdatedBy      pgtype.Text        `json:"UpdatedBy"`
+	IsMailVerified bool               `json:"IsMailVerified"`
+	IsLocked       bool               `json:"IsLocked"`
 }
 
 type BlockBruteForce struct {

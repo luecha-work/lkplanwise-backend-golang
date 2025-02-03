@@ -89,7 +89,7 @@ func (q *Queries) GetAllRoles(ctx context.Context) ([]Role, error) {
 }
 
 const getRoleById = `-- name: GetRoleById :one
-SELECT "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Roles" WHERE "Id" = $1
+SELECT "Id", "RoleCode", "RoleName", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Roles" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetRoleById(ctx context.Context, id uuid.UUID) (Role, error) {

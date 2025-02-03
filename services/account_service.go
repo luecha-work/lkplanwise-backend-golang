@@ -44,3 +44,21 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 
 	return userResponse, nil
 }
+
+func lockAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
+	account, err := store.GetAccountByUsername(ctx, username)
+	if err != nil {
+		return db.Account{}, err
+	}
+
+	updatedAccount, err := store.UpdateAccount(ctx, db.UpdateAccountParams{
+		ID:       account.Id,
+		Islocked: pgtype.Bool{Bool: true, Valid: true},
+	})
+	if err != nil {
+		return db.Account{}, err
+	}
+
+	return updatedAccount, nil
+
+}

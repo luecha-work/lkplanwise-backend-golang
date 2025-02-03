@@ -2,7 +2,7 @@
 SELECT * FROM "Goal";
 
 -- name: GetGoalById :one
-SELECT * FROM "Goal" WHERE "Id" = $1;
+SELECT * FROM "Goal" WHERE "Id" = $1 LIMIT 1;
 
 -- name: CreateGoal :one
 INSERT INTO "Goal" ("Id", "AccountId", "GoalType", "TargetAmount", "CurrentAmount", "Deadline", "Progress", "CreatedAt", "CreatedBy")
