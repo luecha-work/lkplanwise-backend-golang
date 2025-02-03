@@ -45,20 +45,40 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 	return userResponse, nil
 }
 
-func lockAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
+func lockedAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
 	account, err := store.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return db.Account{}, err
 	}
 
 	updatedAccount, err := store.UpdateAccount(ctx, db.UpdateAccountParams{
-		ID:       account.Id,
-		Islocked: pgtype.Bool{Bool: true, Valid: true},
+		ID:        account.Id,
+		Islocked:  pgtype.Bool{Bool: true, Valid: true},
+		Updatedat: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		Updatedby: pgtype.Text{String: "system", Valid: true},
 	})
 	if err != nil {
 		return db.Account{}, err
 	}
 
 	return updatedAccount, nil
+}
 
+func unLockAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
+	account, err := store.GetAccountByUsername(ctx, username)
+	if err != nil {
+		return db.Account{}, err
+	}
+
+	updatedAccount, err := store.UpdateAccount(ctx, db.UpdateAccountParams{
+		ID:        account.Id,
+		Islocked:  pgtype.Bool{Bool: false, Valid: true},
+		Updatedat: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		Updatedby: pgtype.Text{String: "system", Valid: true},
+	})
+	if err != nil {
+		return db.Account{}, err
+	}
+
+	return updatedAccount, nil
 }

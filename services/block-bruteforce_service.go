@@ -72,7 +72,7 @@ func lockBruteForce(ctx *gin.Context, store db.Store, bruteForce db.BlockBruteFo
 		return db.BlockBruteForce{}, err
 	}
 
-	if _, err = lockAccount(ctx, store, bruteForce.UserName); err != nil {
+	if _, err = lockedAccount(ctx, store, bruteForce.UserName); err != nil {
 		return db.BlockBruteForce{}, err
 	}
 
@@ -96,6 +96,10 @@ func checkForUnLockBruteForce(ctx *gin.Context, store db.Store, username string)
 			Updatedat:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
 		})
 		if err != nil {
+			return db.BlockBruteForce{}, err
+		}
+
+		if _, err = unLockAccount(ctx, store, bruteForce.UserName); err != nil && !errors.Is(err, db.ErrRecordNotFound) {
 			return db.BlockBruteForce{}, err
 		}
 
