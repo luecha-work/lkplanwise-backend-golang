@@ -51,7 +51,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	//TODO: Check session
 	var sessionId uuid.UUID
 
-	if session, err := CheckSession(ctx, store, account); err != nil {
+	if session, err := CheckLKPlanWiseSessionForLogin(ctx, store, account); err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
 			newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
 
@@ -62,11 +62,9 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 			sessionId = newSession.Id
 		}
 	} else {
-
 		DeleteLKPlanWiseSession(ctx, store, session.Id)
 
 		newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
-
 		if err != nil {
 			return models.LoginResponse{}, err
 		}
@@ -74,8 +72,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		sessionId = newSession.Id
 	}
 
-	_, err = checkForUnLockBruteForce(ctx, store, req.Email)
-	if err != nil {
+	if _, err = checkForUnLockBruteForce(ctx, store, req.Email); err != nil {
 		return models.LoginResponse{}, err
 	}
 

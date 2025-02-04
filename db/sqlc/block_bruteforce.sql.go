@@ -138,8 +138,8 @@ SET
   "Email" = COALESCE($1, "Email"),
   "Count" = COALESCE($2, "Count"),
   "Status" = COALESCE($3, "Status"),
-  "LockedTime" = COALESCE($4, "LockedTime"),
-  "UnLockTime" = COALESCE($5, "UnLockTime"),
+  "LockedTime" = $4,
+  "UnLockTime" = $5,
   "UpdatedAt" = COALESCE($6, "UpdatedAt"),
   "UpdatedBy" = COALESCE($7, "UpdatedBy")
 WHERE "Id" = $8

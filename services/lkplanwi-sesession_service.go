@@ -11,12 +11,11 @@ import (
 	"github.com/lkplanwise-api/token"
 )
 
-func CheckSession(ctx *gin.Context, store db.Store, account db.Account) (db.LKPlanWiseSession, error) {
+func CheckLKPlanWiseSessionForLogin(ctx *gin.Context, store db.Store, account db.Account) (db.LKPlanWiseSession, error) {
 	session, err := store.GetLKPlanWiseSessionForLogin(ctx, db.GetLKPlanWiseSessionForLoginParams{
 		AccountId: pgtype.UUID{Bytes: account.Id, Valid: true},
 		LoginIp:   ctx.ClientIP(),
 	})
-
 	if err != nil {
 		return db.LKPlanWiseSession{}, err
 	}
@@ -41,7 +40,7 @@ func CreateLKPlanWiseSession(
 		Browser:        pgtype.Text{String: req.Browser, Valid: true},
 		LoginIp:        ctx.ClientIP(),
 		IssuedTime:     pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},
-		ExpirationTime: pgtype.Timestamptz{Time: accessPayload.ExpiredAt, Valid: true},
+		ExpirationTime: pgtype.Timestamptz{Time: refreshPayload.ExpiredAt, Valid: true},
 		SessionStatus:  "A",
 		Token:          pgtype.Text{String: accessToken, Valid: true},
 		RefreshTokenAt: pgtype.Timestamptz{Time: refreshPayload.IssuedAt, Valid: true},

@@ -25,8 +25,8 @@ SET
   "Email" = COALESCE(sqlc.narg(Email), "Email"),
   "Count" = COALESCE(sqlc.narg(Count), "Count"),
   "Status" = COALESCE(sqlc.narg(Status), "Status"),
-  "LockedTime" = COALESCE(sqlc.narg(LockedTime), "LockedTime"),
-  "UnLockTime" = COALESCE(sqlc.narg(UnLockTime), "UnLockTime"),
+  "LockedTime" = sqlc.arg(LockedTime),
+  "UnLockTime" = sqlc.arg(UnLockTime),
   "UpdatedAt" = COALESCE(sqlc.narg(UpdatedAt), "UpdatedAt"),
   "UpdatedBy" = COALESCE(sqlc.narg(UpdatedBy), "UpdatedBy")
 WHERE "Id" = sqlc.arg(Id)
