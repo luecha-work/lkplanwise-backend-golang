@@ -9,7 +9,7 @@ func NewAccountResponse(account db.Account) models.AccountResponse {
 	return models.AccountResponse{
 		UserName:  account.UserName,
 		FullName:  account.FirstName.String + " " + account.LastName.String,
-		Email:     account.Email.String,
+		Email:     account.Email,
 		CreatedAt: account.CreatedAt.Time,
 		CreatedBy: account.CreatedBy.String,
 	}

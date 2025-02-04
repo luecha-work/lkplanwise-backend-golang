@@ -15,7 +15,7 @@ import (
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "CreatedBy")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
+RETURNING "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
 `
 
 type CreateAccountParams struct {
@@ -23,7 +23,7 @@ type CreateAccountParams struct {
 	UserName     string             `json:"UserName"`
 	FirstName    pgtype.Text        `json:"FirstName"`
 	LastName     pgtype.Text        `json:"LastName"`
-	Email        pgtype.Text        `json:"Email"`
+	Email        string             `json:"Email"`
 	PasswordHash pgtype.Text        `json:"PasswordHash"`
 	DateOfBirth  pgtype.Text        `json:"DateOfBirth"`
 	RoleId       uuid.UUID          `json:"RoleId"`
@@ -47,9 +47,9 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	var i Account
 	err := row.Scan(
 		&i.Id,
+		&i.UserName,
 		&i.FirstName,
 		&i.LastName,
-		&i.UserName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.DateOfBirth,
@@ -73,8 +73,35 @@ func (q *Queries) DeleteAccount(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getAccountByEmail = `-- name: GetAccountByEmail :one
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
+WHERE "Email" = $1 LIMIT 1
+`
+
+func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByEmail, email)
+	var i Account
+	err := row.Scan(
+		&i.Id,
+		&i.UserName,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DateOfBirth,
+		&i.RoleId,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.IsMailVerified,
+		&i.IsLocked,
+	)
+	return i, err
+}
+
 const getAccountById = `-- name: GetAccountById :one
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts" WHERE "Id" = $1 LIMIT 1
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts" WHERE "Id" = $1 LIMIT 1
 `
 
 func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, error) {
@@ -82,9 +109,9 @@ func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, er
 	var i Account
 	err := row.Scan(
 		&i.Id,
+		&i.UserName,
 		&i.FirstName,
 		&i.LastName,
-		&i.UserName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.DateOfBirth,
@@ -100,7 +127,7 @@ func (q *Queries) GetAccountById(ctx context.Context, id uuid.UUID) (Account, er
 }
 
 const getAccountByUsername = `-- name: GetAccountByUsername :one
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
 WHERE "UserName" = $1 LIMIT 1
 `
 
@@ -109,9 +136,9 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 	var i Account
 	err := row.Scan(
 		&i.Id,
+		&i.UserName,
 		&i.FirstName,
 		&i.LastName,
-		&i.UserName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.DateOfBirth,
@@ -127,7 +154,7 @@ func (q *Queries) GetAccountByUsername(ctx context.Context, username string) (Ac
 }
 
 const getAllAccounts = `-- name: GetAllAccounts :many
-SELECT "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked" FROM "Accounts"
 `
 
 func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
@@ -141,9 +168,9 @@ func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
 		var i Account
 		if err := rows.Scan(
 			&i.Id,
+			&i.UserName,
 			&i.FirstName,
 			&i.LastName,
-			&i.UserName,
 			&i.Email,
 			&i.PasswordHash,
 			&i.DateOfBirth,
@@ -180,7 +207,7 @@ SET
   "IsMailVerified" = COALESCE($10, "IsMailVerified"),
   "IsLocked" = COALESCE($11, "IsLocked")
 WHERE "Id" = $12
-RETURNING "Id", "FirstName", "LastName", "UserName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
+RETURNING "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "IsMailVerified", "IsLocked"
 `
 
 type UpdateAccountParams struct {
@@ -216,9 +243,9 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 	var i Account
 	err := row.Scan(
 		&i.Id,
+		&i.UserName,
 		&i.FirstName,
 		&i.LastName,
-		&i.UserName,
 		&i.Email,
 		&i.PasswordHash,
 		&i.DateOfBirth,

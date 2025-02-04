@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,13 +22,20 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 		return models.AccountResponse{}, err
 	}
 
+	if _, err = store.GetRoleById(ctx, uuid.MustParse(req.RoleId)); err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			return models.AccountResponse{}, errors.New("role not found in the system")
+		}
+		return models.AccountResponse{}, err
+	}
+
 	// สร้าง Account
 	arg := db.CreateAccountParams{
 		Id:           uuid.New(),
 		UserName:     req.UserName,
 		FirstName:    pgtype.Text{String: req.FirstName, Valid: true},
 		LastName:     pgtype.Text{String: req.LastName, Valid: true},
-		Email:        pgtype.Text{String: req.Email, Valid: true},
+		Email:        req.Email,
 		PasswordHash: pgtype.Text{String: hashPassword, Valid: true},
 		DateOfBirth:  pgtype.Text{String: req.DateOfBirth, Valid: true},
 		RoleId:       uuid.MustParse(req.RoleId),
@@ -45,8 +53,8 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 	return userResponse, nil
 }
 
-func lockedAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
-	account, err := store.GetAccountByUsername(ctx, username)
+func lockedAccount(ctx *gin.Context, store db.Store, email string) (db.Account, error) {
+	account, err := store.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return db.Account{}, err
 	}
@@ -64,8 +72,8 @@ func lockedAccount(ctx *gin.Context, store db.Store, username string) (db.Accoun
 	return updatedAccount, nil
 }
 
-func unLockAccount(ctx *gin.Context, store db.Store, username string) (db.Account, error) {
-	account, err := store.GetAccountByUsername(ctx, username)
+func unLockAccount(ctx *gin.Context, store db.Store, email string) (db.Account, error) {
+	account, err := store.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return db.Account{}, err
 	}

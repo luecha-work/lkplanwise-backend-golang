@@ -1,16 +1,18 @@
 CREATE TABLE "Accounts" (
   "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "UserName" varchar(100) NOT NULL UNIQUE,
   "FirstName" varchar(100),
   "LastName" varchar(100),
-  "UserName" varchar(100) NOT NULL UNIQUE,
-  "Email" varchar(100),
+  "Email" varchar(100) NOT NULL UNIQUE,
   "PasswordHash" text,
   "DateOfBirth" varchar,
   "RoleId" uuid NOT NULL,
   "CreatedAt" timestamptz,
   "UpdatedAt" timestamptz,
   "CreatedBy" varchar(100),
-  "UpdatedBy" varchar(100)
+  "UpdatedBy" varchar(100),
+  "IsMailVerified" bool NOT NULL DEFAULT false,
+  "IsLocked" bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE "Roles" (
@@ -96,7 +98,7 @@ CREATE TABLE "LKPlanWiseSession" (
 
 CREATE TABLE "BlockBruteForce" (
   "Id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "UserName" varchar(100) NOT NULL,
+  "Email" varchar(100) NOT NULL,
   "Count" int,
   "Status" varchar(1) NOT NULL,
   "LockedTime" timestamptz,

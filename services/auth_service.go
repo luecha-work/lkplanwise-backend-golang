@@ -13,11 +13,11 @@ import (
 )
 
 func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker token.Maker, config utils.Config) (models.LoginResponse, error) {
-	account, err := store.GetAccountByUsername(ctx, req.Username)
+	account, err := store.GetAccountByEmail(ctx, req.Email)
 	if err != nil {
 		fmt.Printf("get account error: %s\n", err)
 		if errors.Is(err, db.ErrRecordNotFound) {
-			ManageBlockBruteForce(ctx, store, req.Username)
+			ManageBlockBruteForce(ctx, store, req.Email)
 			return models.LoginResponse{}, errors.New("username or password is incorrect")
 		}
 	}
@@ -25,7 +25,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	err = utils.CheckPassword(req.Password, account.PasswordHash.String)
 	if err != nil {
 		fmt.Printf("check password error: %s\n", err)
-		ManageBlockBruteForce(ctx, store, req.Username)
+		ManageBlockBruteForce(ctx, store, req.Email)
 		return models.LoginResponse{}, errors.New("username or password is incorrect")
 	}
 
@@ -53,7 +53,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 
 	if session, err := CheckSession(ctx, store, account); err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
-			newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, accessPayload, refreshPayload, accessToken)
+			newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
 
 			if err != nil {
 				return models.LoginResponse{}, err
@@ -65,7 +65,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 
 		DeleteLKPlanWiseSession(ctx, store, session.Id)
 
-		newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, accessPayload, refreshPayload, accessToken)
+		newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
 
 		if err != nil {
 			return models.LoginResponse{}, err
@@ -74,7 +74,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		sessionId = newSession.Id
 	}
 
-	_, err = checkForUnLockBruteForce(ctx, store, req.Username)
+	_, err = checkForUnLockBruteForce(ctx, store, req.Email)
 	if err != nil {
 		return models.LoginResponse{}, err
 	}

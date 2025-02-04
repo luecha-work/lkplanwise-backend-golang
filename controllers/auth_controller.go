@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lkplanwise-api/constant"
+	db "github.com/lkplanwise-api/db/sqlc"
 	models "github.com/lkplanwise-api/models"
 	"github.com/lkplanwise-api/services"
 )
@@ -16,7 +17,7 @@ func (server *Server) login(ctx *gin.Context) {
 		return
 	}
 
-	isBlocked, err := services.CheckBlockedBruteForce(ctx, server.store, req.Username)
+	isBlocked, err := services.CheckBlockedBruteForce(ctx, server.store, req.Email)
 	if isBlocked {
 		ctx.JSON(http.StatusLocked, constant.ErrorResponse(err))
 		return
@@ -40,6 +41,11 @@ func (server *Server) resister(ctx *gin.Context) {
 
 	account, err := services.CreateAccount(ctx, server.store, req)
 	if err != nil {
+		errCode := db.ErrorCode(err)
+		if errCode == db.ForeignKeyViolation || errCode == db.UniqueViolation {
+			ctx.JSON(http.StatusForbidden, constant.ErrorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, constant.ErrorResponse(err))
 		return
 	}

@@ -27,6 +27,7 @@ type Querier interface {
 	DeleteLKPlanWiseSession(ctx context.Context, id uuid.UUID) (LKPlanWiseSession, error)
 	DeleteRole(ctx context.Context, id uuid.UUID) error
 	DeleteTransaction(ctx context.Context, id uuid.UUID) error
+	GetAccountByEmail(ctx context.Context, email string) (Account, error)
 	GetAccountById(ctx context.Context, id uuid.UUID) (Account, error)
 	GetAccountByUsername(ctx context.Context, username string) (Account, error)
 	GetAllAccounts(ctx context.Context) ([]Account, error)
@@ -35,8 +36,8 @@ type Querier interface {
 	GetAllGoals(ctx context.Context) ([]Goal, error)
 	GetAllRoles(ctx context.Context) ([]Role, error)
 	GetAllTransactions(ctx context.Context) ([]TransactionHistory, error)
+	GetBlockBruteForceByEmail(ctx context.Context, email string) (BlockBruteForce, error)
 	GetBlockBruteForceById(ctx context.Context, id uuid.UUID) (BlockBruteForce, error)
-	GetBlockBruteForceByUsername(ctx context.Context, username string) (BlockBruteForce, error)
 	GetBudgetPlanById(ctx context.Context, id uuid.UUID) (BudgetPlan, error)
 	GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error)
 	GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error)

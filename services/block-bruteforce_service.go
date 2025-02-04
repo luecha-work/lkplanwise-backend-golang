@@ -9,8 +9,8 @@ import (
 	db "github.com/lkplanwise-api/db/sqlc"
 )
 
-func CheckBlockedBruteForce(ctx *gin.Context, store db.Store, username string) (bool, error) {
-	bruteForce, err := store.GetBlockBruteForceByUsername(ctx, username)
+func CheckBlockedBruteForce(ctx *gin.Context, store db.Store, email string) (bool, error) {
+	bruteForce, err := store.GetBlockBruteForceByEmail(ctx, email)
 	if err != nil {
 		return false, err
 	}
@@ -26,12 +26,12 @@ func CheckBlockedBruteForce(ctx *gin.Context, store db.Store, username string) (
 func ManageBlockBruteForce(
 	ctx *gin.Context,
 	store db.Store,
-	username string) (db.BlockBruteForce, error) {
+	email string) (db.BlockBruteForce, error) {
 
-	bruteForce, err := store.GetBlockBruteForceByUsername(ctx, username)
+	bruteForce, err := store.GetBlockBruteForceByEmail(ctx, email)
 	if err != nil {
-		if err == db.ErrRecordNotFound {
-			return CreateNewBruteForce(ctx, store, username)
+		if errors.Is(err, db.ErrRecordNotFound) {
+			return CreateNewBruteForce(ctx, store, email)
 		}
 		return db.BlockBruteForce{}, err
 	} else if bruteForce.Count.Int32 >= 4 {
@@ -41,9 +41,9 @@ func ManageBlockBruteForce(
 	return incrementBruteForce(ctx, store, bruteForce)
 }
 
-func CreateNewBruteForce(ctx *gin.Context, store db.Store, username string) (db.BlockBruteForce, error) {
+func CreateNewBruteForce(ctx *gin.Context, store db.Store, email string) (db.BlockBruteForce, error) {
 	newBruteForce, err := store.CreateBlockBruteForce(ctx, db.CreateBlockBruteForceParams{
-		UserName:   username,
+		Email:      email,
 		Count:      pgtype.Int4{Int32: 1, Valid: true},
 		Status:     "U",
 		LockedTime: pgtype.Timestamptz{Valid: false},
@@ -60,7 +60,7 @@ func CreateNewBruteForce(ctx *gin.Context, store db.Store, username string) (db.
 func lockBruteForce(ctx *gin.Context, store db.Store, bruteForce db.BlockBruteForce) (db.BlockBruteForce, error) {
 	updatedBruteForce, err := store.UpdateBlockBruteForce(ctx, db.UpdateBlockBruteForceParams{
 		ID:         bruteForce.Id,
-		Username:   pgtype.Text{String: bruteForce.UserName, Valid: true},
+		Email:      pgtype.Text{String: bruteForce.Email, Valid: true},
 		Count:      pgtype.Int4{Int32: bruteForce.Count.Int32 + 1, Valid: true},
 		Status:     pgtype.Text{String: "L", Valid: true},
 		Lockedtime: pgtype.Timestamptz{Time: time.Now(), Valid: true},
@@ -72,15 +72,15 @@ func lockBruteForce(ctx *gin.Context, store db.Store, bruteForce db.BlockBruteFo
 		return db.BlockBruteForce{}, err
 	}
 
-	if _, err = lockedAccount(ctx, store, bruteForce.UserName); err != nil {
+	if _, err = lockedAccount(ctx, store, bruteForce.Email); err != nil {
 		return db.BlockBruteForce{}, err
 	}
 
 	return updatedBruteForce, nil
 }
 
-func checkForUnLockBruteForce(ctx *gin.Context, store db.Store, username string) (db.BlockBruteForce, error) {
-	bruteForce, err := store.GetBlockBruteForceByUsername(ctx, username)
+func checkForUnLockBruteForce(ctx *gin.Context, store db.Store, email string) (db.BlockBruteForce, error) {
+	bruteForce, err := store.GetBlockBruteForceByEmail(ctx, email)
 	if err != nil && !errors.Is(err, db.ErrRecordNotFound) {
 		return db.BlockBruteForce{}, err
 	}
@@ -99,7 +99,7 @@ func checkForUnLockBruteForce(ctx *gin.Context, store db.Store, username string)
 			return db.BlockBruteForce{}, err
 		}
 
-		if _, err = unLockAccount(ctx, store, bruteForce.UserName); err != nil && !errors.Is(err, db.ErrRecordNotFound) {
+		if _, err = unLockAccount(ctx, store, bruteForce.Email); err != nil && !errors.Is(err, db.ErrRecordNotFound) {
 			return db.BlockBruteForce{}, err
 		}
 
@@ -111,9 +111,9 @@ func checkForUnLockBruteForce(ctx *gin.Context, store db.Store, username string)
 
 func incrementBruteForce(ctx *gin.Context, store db.Store, bruteForce db.BlockBruteForce) (db.BlockBruteForce, error) {
 	newBruteForce, err := store.UpdateBlockBruteForce(ctx, db.UpdateBlockBruteForceParams{
-		ID:       bruteForce.Id,
-		Username: pgtype.Text{String: bruteForce.UserName, Valid: true},
-		Status:   pgtype.Text{String: bruteForce.Status, Valid: true},
+		ID:     bruteForce.Id,
+		Email:  pgtype.Text{String: bruteForce.Email, Valid: true},
+		Status: pgtype.Text{String: bruteForce.Status, Valid: true},
 		Lockedtime: pgtype.Timestamptz{
 			Time:  bruteForce.LockedTime.Time,
 			Valid: bruteForce.LockedTime.Valid,

@@ -1,6 +1,6 @@
 -- name: CreateBlockBruteForce :one
 INSERT INTO "BlockBruteForce" (
-  "UserName", "Count", "Status", 
+  "Email", "Count", "Status", 
   "LockedTime", "UnLockTime", "CreatedAt", "CreatedBy"
 ) 
 VALUES (
@@ -14,15 +14,15 @@ SELECT *
 FROM "BlockBruteForce" 
 WHERE "Id" = $1 LIMIT 1;
 
--- name: GetBlockBruteForceByUsername :one
+-- name: GetBlockBruteForceByEmail :one
 SELECT * 
 FROM "BlockBruteForce" 
-WHERE "UserName" = $1 LIMIT 1;
+WHERE "Email" = $1 LIMIT 1;
 
 -- name: UpdateBlockBruteForce :one
 UPDATE "BlockBruteForce"
 SET 
-  "UserName" = COALESCE(sqlc.narg(UserName), "UserName"),
+  "Email" = COALESCE(sqlc.narg(Email), "Email"),
   "Count" = COALESCE(sqlc.narg(Count), "Count"),
   "Status" = COALESCE(sqlc.narg(Status), "Status"),
   "LockedTime" = COALESCE(sqlc.narg(LockedTime), "LockedTime"),

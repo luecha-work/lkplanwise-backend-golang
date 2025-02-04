@@ -11,10 +11,10 @@ import (
 
 type Account struct {
 	Id             uuid.UUID          `json:"Id"`
+	UserName       string             `json:"UserName"`
 	FirstName      pgtype.Text        `json:"FirstName"`
 	LastName       pgtype.Text        `json:"LastName"`
-	UserName       string             `json:"UserName"`
-	Email          pgtype.Text        `json:"Email"`
+	Email          string             `json:"Email"`
 	PasswordHash   pgtype.Text        `json:"PasswordHash"`
 	DateOfBirth    pgtype.Text        `json:"DateOfBirth"`
 	RoleId         uuid.UUID          `json:"RoleId"`
@@ -28,7 +28,7 @@ type Account struct {
 
 type BlockBruteForce struct {
 	Id         uuid.UUID          `json:"Id"`
-	UserName   string             `json:"UserName"`
+	Email      string             `json:"Email"`
 	Count      pgtype.Int4        `json:"Count"`
 	Status     string             `json:"Status"`
 	LockedTime pgtype.Timestamptz `json:"LockedTime"`
