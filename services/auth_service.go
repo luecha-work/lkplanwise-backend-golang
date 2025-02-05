@@ -17,6 +17,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	if err != nil {
 		fmt.Printf("get account error: %s\n", err)
 		if errors.Is(err, db.ErrRecordNotFound) {
+			//TODO: If account not found, then check to create for brute force
 			ManageBlockBruteForce(ctx, store, req.Email)
 			return models.LoginResponse{}, errors.New("username or password is incorrect")
 		}
@@ -25,12 +26,14 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	err = utils.CheckPassword(req.Password, account.PasswordHash.String)
 	if err != nil {
 		fmt.Printf("check password error: %s\n", err)
+		//TODO: If password not match, then check to create for brute force
 		ManageBlockBruteForce(ctx, store, req.Email)
 		return models.LoginResponse{}, errors.New("username or password is incorrect")
 	}
 
 	accessToken, accessPayload, err := tokenMaker.CreateToken(
-		account.UserName,
+		account.Id,
+		account.Email,
 		utils.DepositorRole,
 		config.AccessTokenDuration,
 	)
@@ -40,7 +43,8 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	}
 
 	refreshToken, refreshPayload, err := tokenMaker.CreateToken(
-		account.UserName,
+		account.Id,
+		account.Email,
 		utils.DepositorRole,
 		config.RefreshTokenDuration,
 	)
@@ -48,11 +52,12 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		return models.LoginResponse{}, err
 	}
 
-	//TODO: Check session
+	//TODO: Check session and create new session
 	var sessionId uuid.UUID
 
 	if session, err := CheckLKPlanWiseSessionForLogin(ctx, store, account); err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
+			//TODO: If session not found, then create new session
 			newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
 
 			if err != nil {
@@ -62,6 +67,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 			sessionId = newSession.Id
 		}
 	} else {
+		//TODO: If session found, then delete old session and create new session
 		DeleteLKPlanWiseSession(ctx, store, session.Id)
 
 		newSession, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, accessToken)
@@ -72,6 +78,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		sessionId = newSession.Id
 	}
 
+	//TODO: Check for unlock brute force
 	if _, err = checkForUnLockBruteForce(ctx, store, req.Email); err != nil {
 		return models.LoginResponse{}, err
 	}

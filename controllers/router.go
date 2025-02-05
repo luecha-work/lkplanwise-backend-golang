@@ -6,7 +6,7 @@ import (
 )
 
 // setupRouter sets up the routes for the server.
-func (s *Server) setupRouter() {
+func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	// Register routes
@@ -14,18 +14,18 @@ func (s *Server) setupRouter() {
 		c.String(200, "hello")
 	})
 
-	router.POST("/auth/register", s.resister)
-	router.POST("/auth/login", s.login)
+	router.POST("/auth/register", server.resister)
+	router.POST("/auth/login", server.login)
 	// router.POST("/token/refresh-token", server.renewAccessToken)
 
 	// TODO: Use Middleware for routes
-	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(s.tokenMaker))
+	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker, server.store))
 
-	authRoutes.POST("/accounts", s.CreateAccount)
+	authRoutes.POST("/accounts", server.CreateAccount)
 	// authRoutes.GET("/accounts/:id", server.getAccount)
 	// authRoutes.GET("/accounts", server.listAccounts)
 
 	// authRoutes.POST("/transfers", server.createTransfer)
 
-	s.router = router
+	server.router = router
 }
