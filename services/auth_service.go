@@ -31,10 +31,18 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		return models.LoginResponse{}, errors.New("username or password is incorrect")
 	}
 
+	role, err := store.GetRoleById(ctx, account.RoleId)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			return models.LoginResponse{}, errors.New("this account has no role found")
+		}
+		return models.LoginResponse{}, err
+	}
+
 	accessToken, accessPayload, err := tokenMaker.CreateToken(
 		account.Id,
 		account.Email,
-		utils.DepositorRole,
+		role.RoleName.String,
 		config.AccessTokenDuration,
 	)
 
@@ -45,7 +53,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 	refreshToken, refreshPayload, err := tokenMaker.CreateToken(
 		account.Id,
 		account.Email,
-		utils.DepositorRole,
+		role.RoleName.String,
 		config.RefreshTokenDuration,
 	)
 	if err != nil {
