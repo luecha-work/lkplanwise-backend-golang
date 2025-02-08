@@ -5,6 +5,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -18,12 +20,12 @@ type Account struct {
 	PasswordHash   pgtype.Text        `json:"PasswordHash"`
 	DateOfBirth    pgtype.Text        `json:"DateOfBirth"`
 	RoleId         uuid.UUID          `json:"RoleId"`
+	IsMailVerified bool               `json:"IsMailVerified"`
+	IsLocked       bool               `json:"IsLocked"`
 	CreatedAt      pgtype.Timestamptz `json:"CreatedAt"`
 	UpdatedAt      pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy      pgtype.Text        `json:"CreatedBy"`
 	UpdatedBy      pgtype.Text        `json:"UpdatedBy"`
-	IsMailVerified bool               `json:"IsMailVerified"`
-	IsLocked       bool               `json:"IsLocked"`
 }
 
 type BlockBruteForce struct {
@@ -118,4 +120,14 @@ type TransactionHistory struct {
 	UpdatedAt       pgtype.Timestamptz `json:"UpdatedAt"`
 	CreatedBy       pgtype.Text        `json:"CreatedBy"`
 	UpdatedBy       pgtype.Text        `json:"UpdatedBy"`
+}
+
+type VerifyEmail struct {
+	Id         int64     `json:"Id"`
+	UserName   string    `json:"UserName"`
+	Email      string    `json:"Email"`
+	SecretCode string    `json:"SecretCode"`
+	IsUsed     bool      `json:"IsUsed"`
+	CreatedAt  time.Time `json:"CreatedAt"`
+	ExpiredAt  time.Time `json:"ExpiredAt"`
 }

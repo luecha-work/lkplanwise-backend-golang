@@ -39,7 +39,7 @@ func (server *Server) resister(ctx *gin.Context) {
 		return
 	}
 
-	account, err := services.CreateAccount(ctx, server.store, req)
+	account, err := services.CreateAccount(ctx, server.store, server.taskDistributor, req)
 	if err != nil {
 		errCode := db.ErrorCode(err)
 		if errCode == db.ForeignKeyViolation || errCode == db.UniqueViolation {

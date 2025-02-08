@@ -9,10 +9,13 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 	api "github.com/lkplanwise-api/controllers"
 	db "github.com/lkplanwise-api/db/sqlc"
+	"github.com/lkplanwise-api/mail"
 	"github.com/lkplanwise-api/utils"
+	"github.com/lkplanwise-api/worker"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -46,9 +49,17 @@ func main() {
 
 	store := db.NewStore(connPool)
 
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
 	waitGroup, ctx := errgroup.WithContext(ctx)
 
-	runGinServer(config, store)
+	runTaskProcessor(ctx, waitGroup, config, redisOpt, store)
+	runGinServer(config, store, taskDistributor)
+	// runHttpServer(ctx, waitGroup, config, store, taskDistributor)
 
 	err = waitGroup.Wait()
 	if err != nil {
@@ -71,8 +82,8 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(config utils.Config, store db.Store) {
-	server, err := api.NewServer(config, store)
+func runGinServer(config utils.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
@@ -82,3 +93,102 @@ func runGinServer(config utils.Config, store db.Store) {
 		log.Fatal().Err(err).Msg("cannot start server")
 	}
 }
+
+func runTaskProcessor(
+	ctx context.Context,
+	waitGroup *errgroup.Group,
+	config utils.Config,
+	redisOpt asynq.RedisClientOpt,
+	store db.Store,
+) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
+
+	log.Info().Msg("start task processor")
+	err := taskProcessor.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to start task processor")
+	}
+
+	waitGroup.Go(func() error {
+		<-ctx.Done()
+		log.Info().Msg("graceful shutdown task processor")
+
+		taskProcessor.Shutdown()
+		log.Info().Msg("task processor is stopped")
+
+		return nil
+	})
+}
+
+// func runHttpServer(
+// 	ctx context.Context,
+// 	waitGroup *errgroup.Group,
+// 	config utils.Config,
+// 	store db.Store,
+// 	taskDistributor worker.TaskDistributor,
+// ) {
+// 	// ✅ สร้าง server และใช้งาน
+// 	server, err := api.NewServer(config, store, taskDistributor)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("cannot create server")
+// 	}
+
+// 	// ✅ ใช้ Gin router เป็น handler หลัก
+// 	mux := http.NewServeMux()
+// 	mux.Handle("/", server.GetRouter())
+
+// ✅ Swagger Handler
+// statikFS, err := fs.New()
+// if err != nil {
+// 	log.Fatal().Err(err).Msg("cannot create statik fs")
+// }
+// swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
+// mux.Handle("/swagger/", swaggerHandler)
+
+// 	// ✅ CORS Middleware
+// 	c := cors.New(cors.Options{
+// 		AllowedOrigins: config.AllowedOrigins,
+// 		AllowedMethods: []string{
+// 			http.MethodHead, http.MethodOptions, http.MethodGet,
+// 			http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete,
+// 		},
+// 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+// 		AllowCredentials: true,
+// 	})
+// 	handler := c.Handler(mux)
+
+// 	// ✅ ตั้งค่า HTTP Server
+// 	httpServer := &http.Server{
+// 		Handler: handler,
+// 		Addr:    config.HTTPServerAddress,
+// 	}
+
+// 	// ✅ รัน HTTP Server
+// 	waitGroup.Go(func() error {
+// 		log.Info().Msgf("start HTTP server at %s", httpServer.Addr)
+// 		err = httpServer.ListenAndServe()
+// 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+// 			log.Error().Err(err).Msg("HTTP server failed to start")
+// 			return err
+// 		}
+// 		return nil
+// 	})
+
+// 	// ✅ จัดการ Graceful Shutdown
+// 	waitGroup.Go(func() error {
+// 		<-ctx.Done()
+// 		log.Info().Msg("graceful shutdown HTTP server")
+
+// 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 		defer cancel()
+// 		err := httpServer.Shutdown(shutdownCtx)
+// 		if err != nil {
+// 			log.Error().Err(err).Msg("failed to shutdown HTTP server")
+// 			return err
+// 		}
+
+// 		log.Info().Msg("HTTP server stopped")
+// 		return nil
+// 	})
+// }

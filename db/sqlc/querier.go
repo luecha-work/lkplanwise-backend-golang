@@ -19,6 +19,7 @@ type Querier interface {
 	CreateLKPlanWiseSession(ctx context.Context, arg CreateLKPlanWiseSessionParams) (LKPlanWiseSession, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (TransactionHistory, error)
+	CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmailParams) (VerifyEmail, error)
 	DeleteAccount(ctx context.Context, id uuid.UUID) error
 	DeleteBlockBruteForce(ctx context.Context, id uuid.UUID) (BlockBruteForce, error)
 	DeleteBudgetPlan(ctx context.Context, id uuid.UUID) error
@@ -53,6 +54,7 @@ type Querier interface {
 	UpdateLKPlanWiseSession(ctx context.Context, arg UpdateLKPlanWiseSessionParams) (LKPlanWiseSession, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (TransactionHistory, error)
+	UpdateVerifyEmail(ctx context.Context, arg UpdateVerifyEmailParams) (VerifyEmail, error)
 }
 
 var _ Querier = (*Queries)(nil)

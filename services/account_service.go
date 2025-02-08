@@ -6,17 +6,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/lkplanwise-api/constant"
 	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/models"
 	"github.com/lkplanwise-api/utils"
+	"github.com/lkplanwise-api/worker"
 )
 
 // Define a method on the server.Server type using pointer receiver
-func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountRequest) (models.AccountResponse, error) {
-
-	// Hash รหัสผ่าน
+func CreateAccount(ctx *gin.Context, store db.Store, taskDistributor worker.TaskDistributor, req models.CreateAccountRequest) (models.AccountResponse, error) {
 	hashPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return models.AccountResponse{}, err
@@ -49,6 +49,17 @@ func CreateAccount(ctx *gin.Context, store db.Store, req models.CreateAccountReq
 	}
 
 	userResponse := constant.NewAccountResponse(account)
+
+	//TODO: send email then create account
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Email: account.Email,
+	}
+	opts := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical),
+	}
+	taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
 
 	return userResponse, nil
 }

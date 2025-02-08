@@ -4,15 +4,15 @@ CREATE TABLE "Accounts" (
   "FirstName" varchar(100),
   "LastName" varchar(100),
   "Email" varchar(100) NOT NULL UNIQUE,
-  "PasswordHash" text,
+  "PasswordHash" varchar(100),
   "DateOfBirth" varchar,
   "RoleId" uuid NOT NULL,
+  "IsMailVerified" bool NOT NULL DEFAULT false,
+  "IsLocked" bool NOT NULL DEFAULT false,
   "CreatedAt" timestamptz,
   "UpdatedAt" timestamptz,
   "CreatedBy" varchar(100),
-  "UpdatedBy" varchar(100),
-  "IsMailVerified" bool NOT NULL DEFAULT false,
-  "IsLocked" bool NOT NULL DEFAULT false
+  "UpdatedBy" varchar(100)
 );
 
 CREATE TABLE "Roles" (

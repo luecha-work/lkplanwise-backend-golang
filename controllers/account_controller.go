@@ -10,14 +10,15 @@ import (
 	"github.com/lkplanwise-api/services"
 )
 
-func (server *Server) CreateAccount(ctx *gin.Context) {
+func (server *Server) createAccount(ctx *gin.Context) {
 	var req models.CreateAccountRequest
+	//TODO: Validate request for json body
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, constant.ErrorResponse(err))
 		return
 	}
 
-	rsp, err := services.CreateAccount(ctx, server.store, req)
+	rsp, err := services.CreateAccount(ctx, server.store, server.taskDistributor, req)
 	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
 			ctx.JSON(http.StatusForbidden, constant.ErrorResponse(err))
