@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +10,6 @@ import (
 )
 
 func (server *Server) verifyEmail(ctx *gin.Context) {
-	fmt.Println("Verify Email Handler")
 	var req models.VerifyEmailRequest
 	//TODO: Validate request for Query
 	if err := ctx.ShouldBindQuery(&req); err != nil {

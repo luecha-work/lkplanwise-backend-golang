@@ -59,7 +59,6 @@ func main() {
 
 	runTaskProcessor(ctx, waitGroup, config, redisOpt, store)
 	runGinServer(config, store, taskDistributor)
-	// runHttpServer(ctx, waitGroup, config, store, taskDistributor)
 
 	err = waitGroup.Wait()
 	if err != nil {
@@ -120,75 +119,3 @@ func runTaskProcessor(
 		return nil
 	})
 }
-
-// func runHttpServer(
-// 	ctx context.Context,
-// 	waitGroup *errgroup.Group,
-// 	config utils.Config,
-// 	store db.Store,
-// 	taskDistributor worker.TaskDistributor,
-// ) {
-// 	// ✅ สร้าง server และใช้งาน
-// 	server, err := api.NewServer(config, store, taskDistributor)
-// 	if err != nil {
-// 		log.Fatal().Err(err).Msg("cannot create server")
-// 	}
-
-// 	// ✅ ใช้ Gin router เป็น handler หลัก
-// 	mux := http.NewServeMux()
-// 	mux.Handle("/", server.GetRouter())
-
-// ✅ Swagger Handler
-// statikFS, err := fs.New()
-// if err != nil {
-// 	log.Fatal().Err(err).Msg("cannot create statik fs")
-// }
-// swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
-// mux.Handle("/swagger/", swaggerHandler)
-
-// 	// ✅ CORS Middleware
-// 	c := cors.New(cors.Options{
-// 		AllowedOrigins: config.AllowedOrigins,
-// 		AllowedMethods: []string{
-// 			http.MethodHead, http.MethodOptions, http.MethodGet,
-// 			http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete,
-// 		},
-// 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-// 		AllowCredentials: true,
-// 	})
-// 	handler := c.Handler(mux)
-
-// 	// ✅ ตั้งค่า HTTP Server
-// 	httpServer := &http.Server{
-// 		Handler: handler,
-// 		Addr:    config.HTTPServerAddress,
-// 	}
-
-// 	// ✅ รัน HTTP Server
-// 	waitGroup.Go(func() error {
-// 		log.Info().Msgf("start HTTP server at %s", httpServer.Addr)
-// 		err = httpServer.ListenAndServe()
-// 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-// 			log.Error().Err(err).Msg("HTTP server failed to start")
-// 			return err
-// 		}
-// 		return nil
-// 	})
-
-// 	// ✅ จัดการ Graceful Shutdown
-// 	waitGroup.Go(func() error {
-// 		<-ctx.Done()
-// 		log.Info().Msg("graceful shutdown HTTP server")
-
-// 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 		defer cancel()
-// 		err := httpServer.Shutdown(shutdownCtx)
-// 		if err != nil {
-// 			log.Error().Err(err).Msg("failed to shutdown HTTP server")
-// 			return err
-// 		}
-
-// 		log.Info().Msg("HTTP server stopped")
-// 		return nil
-// 	})
-// }

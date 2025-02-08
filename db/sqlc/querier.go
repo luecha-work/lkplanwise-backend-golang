@@ -43,7 +43,7 @@ type Querier interface {
 	GetExpenseById(ctx context.Context, id uuid.UUID) (Expense, error)
 	GetGoalById(ctx context.Context, id uuid.UUID) (Goal, error)
 	GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (LKPlanWiseSession, error)
-	GetLKPlanWiseSessionForLogin(ctx context.Context, arg GetLKPlanWiseSessionForLoginParams) (LKPlanWiseSession, error)
+	GetLKPlanWiseSessionForAuth(ctx context.Context, arg GetLKPlanWiseSessionForAuthParams) (LKPlanWiseSession, error)
 	GetRoleById(ctx context.Context, id uuid.UUID) (Role, error)
 	GetTransactionById(ctx context.Context, id uuid.UUID) (TransactionHistory, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)

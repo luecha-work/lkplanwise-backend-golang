@@ -46,20 +46,14 @@ func NewServer(config utils.Config, store db.Store, taskDistributor worker.TaskD
 	return server, nil
 }
 
-// func (server *Server) GetRouter() *gin.Engine {
-// 	return server.router
-// }
-
-// func (server *Server) Start(address string) error {
-// 	return server.router.Run(address)
-// }
-
 // Start creates an HTTP server and uses ListenAndServe to start it.
 func (server *Server) Start(address string) error {
+
 	// Create an HTTP server using the router and address
 	srv := &http.Server{
 		Addr:    address,
 		Handler: server.router, // set the Gin router as the HTTP handler
+		// Handler: corsHandler,
 	}
 
 	// Create a channel to listen for OS signals (e.g., termination signals)

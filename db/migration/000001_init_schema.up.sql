@@ -88,7 +88,7 @@ CREATE TABLE "LKPlanWiseSession" (
   "IssuedTime" timestamptz,
   "ExpirationTime" timestamptz,
   "SessionStatus" varchar(1) NOT NULL,
-  "Token" text,
+  "RefreshToken" text,
   "RefreshTokenAt" timestamptz,
   "CreatedAt" timestamptz,
   "UpdatedAt" timestamptz,

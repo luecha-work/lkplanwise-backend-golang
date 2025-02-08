@@ -14,7 +14,7 @@ import (
 )
 
 func CheckLKPlanWiseSessionForLogin(ctx *gin.Context, store db.Store, account db.Account) (db.LKPlanWiseSession, error) {
-	session, err := store.GetLKPlanWiseSessionForLogin(ctx, db.GetLKPlanWiseSessionForLoginParams{
+	session, err := store.GetLKPlanWiseSessionForAuth(ctx, db.GetLKPlanWiseSessionForAuthParams{
 		AccountId: pgtype.UUID{Bytes: account.Id, Valid: true},
 		LoginIp:   ctx.ClientIP(),
 	})
@@ -26,7 +26,7 @@ func CheckLKPlanWiseSessionForLogin(ctx *gin.Context, store db.Store, account db
 }
 
 func CheckLKPlanWiseSessionUnavailable(ctx *gin.Context, store db.Store, accessPayload *token.Payload) (bool, error) {
-	session, err := store.GetLKPlanWiseSessionForLogin(ctx, db.GetLKPlanWiseSessionForLoginParams{
+	session, err := store.GetLKPlanWiseSessionForAuth(ctx, db.GetLKPlanWiseSessionForAuthParams{
 		AccountId: pgtype.UUID{Bytes: accessPayload.AccountId, Valid: true},
 		LoginIp:   ctx.ClientIP(),
 	})
@@ -35,7 +35,7 @@ func CheckLKPlanWiseSessionUnavailable(ctx *gin.Context, store db.Store, accessP
 	}
 
 	//TODO: If AccountId and LoginIp do not match then it is an attack. Blocking the session
-	if session.AccountId.Bytes != accessPayload.ID && session.LoginIp != ctx.ClientIP() {
+	if session.AccountId.Bytes != accessPayload.AccountId && session.LoginIp != ctx.ClientIP() {
 		//TODO: Block session
 		_, err = store.UpdateLKPlanWiseSession(ctx, db.UpdateLKPlanWiseSessionParams{
 			ID:            session.Id,
@@ -81,7 +81,7 @@ func CreateLKPlanWiseSession(
 	req models.LoginRequest,
 	accessPayload *token.Payload,
 	refreshPayload *token.Payload,
-	accessToken string) (db.LKPlanWiseSession, error) {
+	refreshToken string) (db.LKPlanWiseSession, error) {
 	newSession, err := store.CreateLKPlanWiseSession(ctx, db.CreateLKPlanWiseSessionParams{
 		AccountId:      pgtype.UUID{Bytes: account.Id, Valid: true},
 		LoginAt:        pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},
@@ -92,7 +92,7 @@ func CreateLKPlanWiseSession(
 		IssuedTime:     pgtype.Timestamptz{Time: accessPayload.IssuedAt, Valid: true},
 		ExpirationTime: pgtype.Timestamptz{Time: refreshPayload.ExpiredAt, Valid: true},
 		SessionStatus:  constant.SessionActive,
-		Token:          pgtype.Text{String: accessToken, Valid: true},
+		RefreshToken:   pgtype.Text{String: refreshToken, Valid: true},
 		RefreshTokenAt: pgtype.Timestamptz{Time: refreshPayload.IssuedAt, Valid: true},
 		CreatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
 		CreatedBy:      pgtype.Text{String: "system", Valid: true},

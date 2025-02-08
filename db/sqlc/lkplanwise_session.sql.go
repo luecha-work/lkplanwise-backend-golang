@@ -16,14 +16,14 @@ const createLKPlanWiseSession = `-- name: CreateLKPlanWiseSession :one
 INSERT INTO "LKPlanWiseSession" (
   "AccountId", "LoginAt", "Platform", "Os", "Browser", 
   "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", 
-  "Token", "RefreshTokenAt", "CreatedAt", "CreatedBy"
+  "RefreshToken", "RefreshTokenAt", "CreatedAt", "CreatedBy"
 ) 
 VALUES (
   $1, $2, $3, $4, $5, 
   $6, $7, $8, $9, 
   $10, $11, $12, $13
 ) 
-RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "RefreshToken", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type CreateLKPlanWiseSessionParams struct {
@@ -36,7 +36,7 @@ type CreateLKPlanWiseSessionParams struct {
 	IssuedTime     pgtype.Timestamptz `json:"IssuedTime"`
 	ExpirationTime pgtype.Timestamptz `json:"ExpirationTime"`
 	SessionStatus  string             `json:"SessionStatus"`
-	Token          pgtype.Text        `json:"Token"`
+	RefreshToken   pgtype.Text        `json:"RefreshToken"`
 	RefreshTokenAt pgtype.Timestamptz `json:"RefreshTokenAt"`
 	CreatedAt      pgtype.Timestamptz `json:"CreatedAt"`
 	CreatedBy      pgtype.Text        `json:"CreatedBy"`
@@ -53,7 +53,7 @@ func (q *Queries) CreateLKPlanWiseSession(ctx context.Context, arg CreateLKPlanW
 		arg.IssuedTime,
 		arg.ExpirationTime,
 		arg.SessionStatus,
-		arg.Token,
+		arg.RefreshToken,
 		arg.RefreshTokenAt,
 		arg.CreatedAt,
 		arg.CreatedBy,
@@ -70,7 +70,7 @@ func (q *Queries) CreateLKPlanWiseSession(ctx context.Context, arg CreateLKPlanW
 		&i.IssuedTime,
 		&i.ExpirationTime,
 		&i.SessionStatus,
-		&i.Token,
+		&i.RefreshToken,
 		&i.RefreshTokenAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -83,7 +83,7 @@ func (q *Queries) CreateLKPlanWiseSession(ctx context.Context, arg CreateLKPlanW
 const deleteLKPlanWiseSession = `-- name: DeleteLKPlanWiseSession :one
 DELETE FROM "LKPlanWiseSession"
 WHERE "Id" = $1
-RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "RefreshToken", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 func (q *Queries) DeleteLKPlanWiseSession(ctx context.Context, id uuid.UUID) (LKPlanWiseSession, error) {
@@ -100,7 +100,7 @@ func (q *Queries) DeleteLKPlanWiseSession(ctx context.Context, id uuid.UUID) (LK
 		&i.IssuedTime,
 		&i.ExpirationTime,
 		&i.SessionStatus,
-		&i.Token,
+		&i.RefreshToken,
 		&i.RefreshTokenAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -111,7 +111,7 @@ func (q *Queries) DeleteLKPlanWiseSession(ctx context.Context, id uuid.UUID) (LK
 }
 
 const getLKPlanWiseSessionById = `-- name: GetLKPlanWiseSessionById :one
-SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
+SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "RefreshToken", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
 FROM "LKPlanWiseSession" 
 WHERE "Id" = $1 LIMIT 1
 `
@@ -130,7 +130,7 @@ func (q *Queries) GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (L
 		&i.IssuedTime,
 		&i.ExpirationTime,
 		&i.SessionStatus,
-		&i.Token,
+		&i.RefreshToken,
 		&i.RefreshTokenAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -140,19 +140,19 @@ func (q *Queries) GetLKPlanWiseSessionById(ctx context.Context, id uuid.UUID) (L
 	return i, err
 }
 
-const getLKPlanWiseSessionForLogin = `-- name: GetLKPlanWiseSessionForLogin :one
-SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
+const getLKPlanWiseSessionForAuth = `-- name: GetLKPlanWiseSessionForAuth :one
+SELECT "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "RefreshToken", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" 
 FROM "LKPlanWiseSession" 
 WHERE "AccountId" = $1 AND "LoginIp" = $2 LIMIT 1
 `
 
-type GetLKPlanWiseSessionForLoginParams struct {
+type GetLKPlanWiseSessionForAuthParams struct {
 	AccountId pgtype.UUID `json:"AccountId"`
 	LoginIp   string      `json:"LoginIp"`
 }
 
-func (q *Queries) GetLKPlanWiseSessionForLogin(ctx context.Context, arg GetLKPlanWiseSessionForLoginParams) (LKPlanWiseSession, error) {
-	row := q.db.QueryRow(ctx, getLKPlanWiseSessionForLogin, arg.AccountId, arg.LoginIp)
+func (q *Queries) GetLKPlanWiseSessionForAuth(ctx context.Context, arg GetLKPlanWiseSessionForAuthParams) (LKPlanWiseSession, error) {
+	row := q.db.QueryRow(ctx, getLKPlanWiseSessionForAuth, arg.AccountId, arg.LoginIp)
 	var i LKPlanWiseSession
 	err := row.Scan(
 		&i.Id,
@@ -165,7 +165,7 @@ func (q *Queries) GetLKPlanWiseSessionForLogin(ctx context.Context, arg GetLKPla
 		&i.IssuedTime,
 		&i.ExpirationTime,
 		&i.SessionStatus,
-		&i.Token,
+		&i.RefreshToken,
 		&i.RefreshTokenAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -187,12 +187,12 @@ SET
   "IssuedTime" = COALESCE($7, "IssuedTime"),
   "ExpirationTime" = COALESCE($8, "ExpirationTime"),
   "SessionStatus" = COALESCE($9, "SessionStatus"),
-  "Token" = COALESCE($10, "Token"),
+  "RefreshToken" = COALESCE($10, "RefreshToken"),
   "RefreshTokenAt" = COALESCE($11, "RefreshTokenAt"),
   "UpdatedAt" = COALESCE($12, "UpdatedAt"),
   "UpdatedBy" = COALESCE($13, "UpdatedBy")
 WHERE "Id" = $14
-RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "Token", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
+RETURNING "Id", "AccountId", "LoginAt", "Platform", "Os", "Browser", "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", "RefreshToken", "RefreshTokenAt", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy"
 `
 
 type UpdateLKPlanWiseSessionParams struct {
@@ -205,7 +205,7 @@ type UpdateLKPlanWiseSessionParams struct {
 	Issuedtime     pgtype.Timestamptz `json:"issuedtime"`
 	Expirationtime pgtype.Timestamptz `json:"expirationtime"`
 	Sessionstatus  pgtype.Text        `json:"sessionstatus"`
-	Token          pgtype.Text        `json:"token"`
+	Refreshtoken   pgtype.Text        `json:"refreshtoken"`
 	Refreshtokenat pgtype.Timestamptz `json:"refreshtokenat"`
 	Updatedat      pgtype.Timestamptz `json:"updatedat"`
 	Updatedby      pgtype.Text        `json:"updatedby"`
@@ -223,7 +223,7 @@ func (q *Queries) UpdateLKPlanWiseSession(ctx context.Context, arg UpdateLKPlanW
 		arg.Issuedtime,
 		arg.Expirationtime,
 		arg.Sessionstatus,
-		arg.Token,
+		arg.Refreshtoken,
 		arg.Refreshtokenat,
 		arg.Updatedat,
 		arg.Updatedby,
@@ -241,7 +241,7 @@ func (q *Queries) UpdateLKPlanWiseSession(ctx context.Context, arg UpdateLKPlanW
 		&i.IssuedTime,
 		&i.ExpirationTime,
 		&i.SessionStatus,
-		&i.Token,
+		&i.RefreshToken,
 		&i.RefreshTokenAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,

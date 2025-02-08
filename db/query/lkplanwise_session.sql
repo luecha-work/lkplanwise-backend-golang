@@ -2,7 +2,7 @@
 INSERT INTO "LKPlanWiseSession" (
   "AccountId", "LoginAt", "Platform", "Os", "Browser", 
   "LoginIp", "IssuedTime", "ExpirationTime", "SessionStatus", 
-  "Token", "RefreshTokenAt", "CreatedAt", "CreatedBy"
+  "RefreshToken", "RefreshTokenAt", "CreatedAt", "CreatedBy"
 ) 
 VALUES (
   $1, $2, $3, $4, $5, 
@@ -16,7 +16,7 @@ SELECT *
 FROM "LKPlanWiseSession" 
 WHERE "Id" = $1 LIMIT 1;
 
--- name: GetLKPlanWiseSessionForLogin :one
+-- name: GetLKPlanWiseSessionForAuth :one
 SELECT * 
 FROM "LKPlanWiseSession" 
 WHERE "AccountId" = $1 AND "LoginIp" = $2 LIMIT 1;
@@ -33,7 +33,7 @@ SET
   "IssuedTime" = COALESCE(sqlc.narg(IssuedTime), "IssuedTime"),
   "ExpirationTime" = COALESCE(sqlc.narg(ExpirationTime), "ExpirationTime"),
   "SessionStatus" = COALESCE(sqlc.narg(SessionStatus), "SessionStatus"),
-  "Token" = COALESCE(sqlc.narg(Token), "Token"),
+  "RefreshToken" = COALESCE(sqlc.narg(RefreshToken), "RefreshToken"),
   "RefreshTokenAt" = COALESCE(sqlc.narg(RefreshTokenAt), "RefreshTokenAt"),
   "UpdatedAt" = COALESCE(sqlc.narg(UpdatedAt), "UpdatedAt"),
   "UpdatedBy" = COALESCE(sqlc.narg(UpdatedBy), "UpdatedBy")

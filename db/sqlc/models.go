@@ -92,7 +92,7 @@ type LKPlanWiseSession struct {
 	IssuedTime     pgtype.Timestamptz `json:"IssuedTime"`
 	ExpirationTime pgtype.Timestamptz `json:"ExpirationTime"`
 	SessionStatus  string             `json:"SessionStatus"`
-	Token          pgtype.Text        `json:"Token"`
+	RefreshToken   pgtype.Text        `json:"RefreshToken"`
 	RefreshTokenAt pgtype.Timestamptz `json:"RefreshTokenAt"`
 	CreatedAt      pgtype.Timestamptz `json:"CreatedAt"`
 	UpdatedAt      pgtype.Timestamptz `json:"UpdatedAt"`
