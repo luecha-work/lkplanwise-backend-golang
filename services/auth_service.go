@@ -2,19 +2,19 @@ package services
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/lkplanwise-api/db/sqlc"
 	"github.com/lkplanwise-api/models"
 	"github.com/lkplanwise-api/token"
 	"github.com/lkplanwise-api/utils"
+	"github.com/rs/zerolog/log"
 )
 
 func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker token.Maker, config utils.Config) (models.LoginResponse, error) {
 	account, err := store.GetAccountByEmail(ctx, req.Email)
 	if err != nil {
-		fmt.Printf("get account error: %s\n", err)
+		log.Error().Err(err).Msg("error getting account by email")
 		if errors.Is(err, db.ErrRecordNotFound) {
 			//TODO: If account not found, then check to create for brute force
 			ManageBlockBruteForce(ctx, store, req.Email)
@@ -24,7 +24,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 
 	err = utils.CheckPassword(req.Password, account.PasswordHash.String)
 	if err != nil {
-		fmt.Printf("check password error: %s\n", err)
+		log.Error().Err(err).Msg("error checking password")
 		//TODO: If password not match, then check to create for brute force
 		ManageBlockBruteForce(ctx, store, req.Email)
 		return models.LoginResponse{}, errors.New("username or password is incorrect")
