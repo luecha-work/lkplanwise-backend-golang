@@ -56,7 +56,7 @@ func CheckLKPlanWiseSessionUnavailable(ctx *gin.Context, store db.Store, accessP
 	}
 
 	//TODO: If the session expires, the system will not be able to be used. You will need to log in again.
-	if session.ExpirationTime.Valid && session.ExpirationTime.Time.After(time.Now()) {
+	if session.ExpirationTime.Valid && time.Now().After(session.ExpirationTime.Time) {
 		_, err = store.UpdateLKPlanWiseSession(ctx, db.UpdateLKPlanWiseSessionParams{
 			ID:            session.Id,
 			Sessionstatus: pgtype.Text{String: constant.SessionExpired, Valid: true},
@@ -107,10 +107,16 @@ func CreateLKPlanWiseSession(
 func DeleteLKPlanWiseSession(
 	ctx *gin.Context,
 	store db.Store,
-	sessionId uuid.UUID) error {
+	accountId uuid.UUID) error {
+	oldSession, err := store.GetLKPlanWiseSessionForAuth(ctx, db.GetLKPlanWiseSessionForAuthParams{
+		AccountId: pgtype.UUID{Bytes: accountId, Valid: true},
+		LoginIp:   ctx.ClientIP(),
+	})
+	if err != nil {
+		return err
+	}
 
-	_, err := store.DeleteLKPlanWiseSession(ctx, sessionId)
-
+	_, err = store.DeleteLKPlanWiseSession(ctx, oldSession.Id)
 	if err != nil {
 		return err
 	}

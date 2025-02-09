@@ -46,6 +46,7 @@ type Querier interface {
 	GetLKPlanWiseSessionForAuth(ctx context.Context, arg GetLKPlanWiseSessionForAuthParams) (LKPlanWiseSession, error)
 	GetRoleById(ctx context.Context, id uuid.UUID) (Role, error)
 	GetTransactionById(ctx context.Context, id uuid.UUID) (TransactionHistory, error)
+	PagedAccounts(ctx context.Context, arg PagedAccountsParams) ([]Account, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateBlockBruteForce(ctx context.Context, arg UpdateBlockBruteForceParams) (BlockBruteForce, error)
 	UpdateBudgetPlan(ctx context.Context, arg UpdateBudgetPlanParams) (BudgetPlan, error)

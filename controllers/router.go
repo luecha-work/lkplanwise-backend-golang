@@ -35,10 +35,11 @@ func (server *Server) setupRouter() {
 	// TODO: Use Middleware for routes
 	authRoutes := router.Group("/").Use(middleware.AuthMiddleware(server.tokenMaker, server.store))
 
-	authRoutes.POST("/accounts", server.createAccount)
-	// authRoutes.GET("/accounts/:id", server.getAccount)
-	// authRoutes.GET("/accounts", server.listAccounts)
-	// authRoutes.POST("/transfers", server.createTransfer)
+	authRoutes.GET("/account/:id", server.getAccountById)
+	authRoutes.POST("/account", server.createAccount)
+	authRoutes.GET("/account", server.pagedAccounts)
+	authRoutes.GET("/all-account", server.listAccounts)
+	authRoutes.DELETE("/account/:id", server.deleteAccount)
 
 	server.router = router
 }

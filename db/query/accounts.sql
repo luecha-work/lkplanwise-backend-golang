@@ -12,6 +12,12 @@ WHERE "UserName" = $1 LIMIT 1;
 SELECT * FROM "Accounts"
 WHERE "Email" = $1 LIMIT 1;
 
+-- name: PagedAccounts :many
+SELECT * FROM "Accounts"
+ORDER BY "CreatedAt"
+LIMIT $1
+OFFSET $2;
+
 -- name: CreateAccount :one
 INSERT INTO "Accounts" ("Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "CreatedAt", "CreatedBy")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)

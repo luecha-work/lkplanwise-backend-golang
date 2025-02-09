@@ -72,7 +72,7 @@ func Login(ctx *gin.Context, store db.Store, req models.LoginRequest, tokenMaker
 		}
 	} else {
 		//TODO: If session found, then delete old session and create new session
-		DeleteLKPlanWiseSession(ctx, store, session.Id)
+		DeleteLKPlanWiseSession(ctx, store, session.AccountId.Bytes)
 
 		_, err := CreateLKPlanWiseSession(ctx, store, tokenMaker, account, req, accessPayload, refreshPayload, refreshToken)
 		if err != nil {

@@ -192,6 +192,53 @@ func (q *Queries) GetAllAccounts(ctx context.Context) ([]Account, error) {
 	return items, nil
 }
 
+const pagedAccounts = `-- name: PagedAccounts :many
+SELECT "Id", "UserName", "FirstName", "LastName", "Email", "PasswordHash", "DateOfBirth", "RoleId", "IsMailVerified", "IsLocked", "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy" FROM "Accounts"
+ORDER BY "CreatedAt"
+LIMIT $1
+OFFSET $2
+`
+
+type PagedAccountsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) PagedAccounts(ctx context.Context, arg PagedAccountsParams) ([]Account, error) {
+	rows, err := q.db.Query(ctx, pagedAccounts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Account{}
+	for rows.Next() {
+		var i Account
+		if err := rows.Scan(
+			&i.Id,
+			&i.UserName,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.PasswordHash,
+			&i.DateOfBirth,
+			&i.RoleId,
+			&i.IsMailVerified,
+			&i.IsLocked,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAccount = `-- name: UpdateAccount :one
 UPDATE "Accounts"
 SET 

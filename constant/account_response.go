@@ -7,6 +7,7 @@ import (
 
 func NewAccountResponse(account db.Account) models.AccountResponse {
 	return models.AccountResponse{
+		Id:        account.Id,
 		UserName:  account.UserName,
 		FullName:  account.FirstName.String + " " + account.LastName.String,
 		Email:     account.Email,
